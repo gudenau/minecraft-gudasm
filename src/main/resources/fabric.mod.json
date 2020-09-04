@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "gud_asm",
+  "version": "${version}",
+
+  "name": "gudASM",
+  "description": "Lets you do weird ASM hacks with relitive ease.",
+  "authors": [
+    "gudenau"
+  ],
+  "contact": {
+    "homepage": "",
+    "sources": ""
+  },
+
+  "license": "",
+  "icon": "assets/gud_asm/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.gudenau.minecraft.asm.GudAsm"
+    ]
+  },
+  "mixins": [
+    "gud_asm.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  },
+  "suggests": {}
+}
