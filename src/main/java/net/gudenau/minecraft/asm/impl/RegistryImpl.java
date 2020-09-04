@@ -17,20 +17,31 @@ public class RegistryImpl implements AsmRegistry{
     private final List<Transformer> transformers = new LinkedList<>();
     private final List<ClassCache> classCaches = new LinkedList<>();
     
+    private volatile Boolean frozen = null;
+    
     private RegistryImpl(){}
     
     @Override
     public void registerEarlyTransformer(Transformer transformer){
+        if(frozen == null || frozen){
+            throw new RuntimeException("Attempted to register transformer outside initializer");
+        }
         earlyTransformers.add(transformer);
     }
     
     @Override
     public void registerTransformer(Transformer transformer){
+        if(frozen == null || frozen){
+            throw new RuntimeException("Attempted to register transformer outside initializer");
+        }
         transformers.add(transformer);
     }
     
     @Override
     public void registerClassCache(ClassCache cache){
+        if(frozen == null || frozen){
+            throw new RuntimeException("Attempted to register class cache outside initializer");
+        }
         classCaches.add(cache);
     }
     
@@ -72,5 +83,14 @@ public class RegistryImpl implements AsmRegistry{
     
     public List<Transformer> getEarlyTransformers(){
         return earlyTransformers;
+    }
+    
+    @SuppressWarnings("NonAtomicOperationOnVolatileField")
+    public void setFrozen(boolean frozen){
+        if(this.frozen == null){
+            this.frozen = frozen;
+        }else{
+            this.frozen |= frozen;
+        }
     }
 }

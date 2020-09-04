@@ -24,6 +24,7 @@ import net.gudenau.minecraft.asm.api.v0.AsmUtils;
 import net.gudenau.minecraft.asm.api.v0.ClassCache;
 import net.gudenau.minecraft.asm.api.v0.Transformer;
 import net.gudenau.minecraft.asm.util.AsmUtilsImpl;
+import net.gudenau.minecraft.asm.util.Locker;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
@@ -44,6 +45,7 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
         "org.lwjgl.",
         "it.unimi.dsi.fastutil."
     ));
+    
     private static final Transformer BOOTSTRAP_TRANSFORMER = new BootstrapTransformer();
     
     private static final MethodHandle ClassLoader$defineClass;
@@ -69,6 +71,9 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
         MixinTransformer.classLoader = classLoader;
     }
     
+    private final Set<String> seenClasses = new HashSet<>();
+    private final Locker seenClassesLocker = new Locker();
+    
     private final IMixinTransformer parent;
     private final List<Transformer> transformers;
     private final List<Transformer> earlyTransformers;
@@ -84,11 +89,22 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
     
     @Override
     public byte[] transformClassBytes(String name, String transformedName, byte[] basicClass){
+        if(seenClassesLocker.readLock(()->seenClasses.contains(name))){
+            return basicClass;
+        }
+        if(seenClassesLocker.writeLock(()->{
+            if(seenClasses.contains(name)){
+                return true;
+            }else{
+                seenClasses.add(name);
+                return false;
+            }
+        })){
+            return basicClass;
+        }
+        
         for(String prefix : BLACKLIST){
             if(name.startsWith(prefix)){
-                if(name.endsWith("ForceBootloaderTest")){
-                    break;
-                }
                 if(forceDump){
                     dump(name, basicClass);
                 }
@@ -218,10 +234,6 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
         }
         
         if(shouldBootstrap){
-                /*
-    static native Class<?> defineClass1(ClassLoader loader, String name, byte[] b, int off, int len,
-                                        ProtectionDomain pd, String source);
-     */
             try{
                 ClassLoader$defineClass.invoke(
                     (ClassLoader)null, // AKA bootstrap ClassLoader

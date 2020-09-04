@@ -46,7 +46,10 @@ public class Bootstrap{
             }
         }
         
+        RegistryImpl registry = RegistryImpl.INSTANCE;
+        
         // And call them all
+        registry.setFrozen(false);
         if(!entryClasses.isEmpty()){
             for(String entryClass : entryClasses){
                 try{
@@ -62,8 +65,7 @@ public class Bootstrap{
                 }
             }
         }
-        
-        RegistryImpl registry = RegistryImpl.INSTANCE;
+        registry.setFrozen(true);
         
         // Let the cache load itself
         ClassCache cache = registry.getCache().orElse(null);
