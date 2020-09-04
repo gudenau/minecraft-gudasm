@@ -76,3 +76,5 @@ publishing {
 		// mavenLocal()
 	}
 }
+
+apply from: 'https://dblsaiko.net/pub/gradle/publish-slim.gradle'
