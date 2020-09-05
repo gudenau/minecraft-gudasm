@@ -13,7 +13,7 @@
     "sources": "https://github.com/gudenau/minecraft-gudasm"
   },
 
-  "license": "",
+  "license": "MPL-2.0",
   "icon": "assets/gud_asm/icon.png",
 
   "environment": "*",
