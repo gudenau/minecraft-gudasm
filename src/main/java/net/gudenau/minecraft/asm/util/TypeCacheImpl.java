@@ -9,6 +9,10 @@ import net.gudenau.minecraft.asm.api.v0.TypeCache;
 import org.objectweb.asm.Type;
 
 public class TypeCacheImpl implements TypeCache{
+    public static final TypeCache INSTANCE = new TypeCacheImpl();
+
+    private TypeCacheImpl(){}
+
     private final Locker stringLocker = new Locker();
     private final Map<String, WeakReference<Type>> stringCache = new Object2ObjectOpenHashMap<>();
     

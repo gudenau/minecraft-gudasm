@@ -1,11 +1,23 @@
 package net.gudenau.minecraft.asm.api.v0;
 
+import net.gudenau.minecraft.asm.util.TypeCacheImpl;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
 /**
  * Type cache to try and keep less instances floating around.
  * */
 public interface TypeCache{
+    /**
+     * Get the handle to the Type cache.
+     *
+     * @return The handle to the type cache
+     * */
+    @NotNull
+    static TypeCache getTypeCache(){
+        return TypeCacheImpl.INSTANCE;
+    }
+
     /**
      * Gets a Type from a descriptor.
      *

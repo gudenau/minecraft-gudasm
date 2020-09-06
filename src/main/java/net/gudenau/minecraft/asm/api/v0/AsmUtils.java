@@ -26,12 +26,13 @@ public interface AsmUtils{
     static AsmUtils getInstance(){
         return AsmUtilsImpl.INSTANCE;
     }
-    
+
     /**
      * Get the handle to the Type cache.
      *
      * @return The handle to the type cache
      * */
+    @Deprecated
     @NotNull
     TypeCache getTypeCache();
     
@@ -387,6 +388,7 @@ public interface AsmUtils{
      *
      * @param method The method to search
      * @param checker The node checker
+     * @param <T> The type of node the checker looks for
      *
      * @return A list of all matching nodes
      * */
@@ -400,12 +402,67 @@ public interface AsmUtils{
      *
      * @param instructions The instructions to search
      * @param checker The node checker
+     * @param <T> The type of node the checker looks for
      *
      * @return A list of all matching nodes
      * */
     @NotNull
     <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull InsnList instructions, @NotNull BooleanFunction<AbstractInsnNode> checker);
-    
+
+    /**
+     * Finds the next node that matches.
+     *
+     * @param start The start of the search, exclusive
+     * @param checker The node checker
+     * @param <T> The type of node the checker looks for
+     *
+     * @return The found node
+     */
+    @NotNull
+    default <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker){
+        return findNextNode(start, checker, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Finds the next node that matches.
+     *
+     * @param start The start of the search, exclusive
+     * @param checker The node checker
+     * @param limit The max amount of nodes to search
+     * @param <T> The type of node the checker looks for
+     *
+     * @return The found node
+     */
+    @NotNull
+    <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit);
+
+    /**
+     * Finds the previous node that matches.
+     *
+     * @param start The start of the search, exclusive
+     * @param checker The node checker
+     * @param <T> The type of node the checker looks for
+     *
+     * @return The found node
+     */
+    @NotNull
+    default <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker){
+        return findPreviousNode(start, checker, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Finds the previous node that matches.
+     *
+     * @param start The start of the search, exclusive
+     * @param checker The node checker
+     * @param limit The max amount of nodes to search
+     * @param <T> The type of node the checker looks for
+     *
+     * @return The found node
+     */
+    @NotNull
+    <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit);
+
     /**
      * Searches for method call instructions in a method.
      *
@@ -465,6 +522,68 @@ public interface AsmUtils{
      * */
     @NotNull
     List<MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description);
+
+    /**
+     * Searches for the next method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param owner Owner, or null if it doesn't matter
+     * @param name Name, or null if it doesn't matter
+     * @param description Description, or null if it doesn't matter
+     * @param limit The max amount of nodes to check
+     *
+     * @return A list of all matching method calls
+     * */
+    @NotNull
+    default Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, @Nullable String owner, @Nullable String name, @Nullable String description, int limit){
+        return findNextMethodCall(node, -1, owner, name, description, limit);
+    }
+
+    /**
+     * Searches for the next method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param owner Owner, or null if it doesn't matter
+     * @param name Name, or null if it doesn't matter
+     * @param description Description, or null if it doesn't matter
+     * @param limit The max amount of nodes to check
+     *
+     * @return A list of all matching method calls
+     * */
+    @NotNull
+    Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description, int limit);
+
+    /**
+     * Searches for the previous method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param owner Owner, or null if it doesn't matter
+     * @param name Name, or null if it doesn't matter
+     * @param description Description, or null if it doesn't matter
+     * @param limit The max amount of nodes to check
+     *
+     * @return A list of all matching method calls
+     * */
+    @NotNull
+    default Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, @Nullable String owner, @Nullable String name, @Nullable String description, int limit){
+        return findPreviousMethodCall(node, -1, owner, name, description, limit);
+    }
+
+    /**
+     * Searches for the previous method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param owner Owner, or null if it doesn't matter
+     * @param name Name, or null if it doesn't matter
+     * @param description Description, or null if it doesn't matter
+     * @param limit The max amount of nodes to check
+     *
+     * @return A list of all matching method calls
+     * */
+    @NotNull
+    Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description, int limit);
     
     /**
      * Finds up to count nodes after the provided node.
@@ -558,7 +677,7 @@ public interface AsmUtils{
      * */
     @Nullable
     List<AbstractInsnNode> findInRange(AbstractInsnNode start, AbstractInsnNode end);
-    
+
     // --- Dynamic instruction stuff ---
     
     /**

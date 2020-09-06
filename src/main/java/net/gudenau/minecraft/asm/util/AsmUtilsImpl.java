@@ -25,13 +25,12 @@ public class AsmUtilsImpl implements AsmUtils{
     private static final IntSet RETURN_OPCODES = new IntOpenHashSet(new int[]{
         IRETURN, LRETURN, FRETURN, DRETURN, ARETURN, RETURN
     });
-    private final TypeCache typeCache = new TypeCacheImpl();
     
     private AsmUtilsImpl(){}
     
     @Override
     public @NotNull TypeCache getTypeCache(){
-        return typeCache;
+        return TypeCache.getTypeCache();
     }
     
     @Override
@@ -132,32 +131,58 @@ public class AsmUtilsImpl implements AsmUtils{
         }
         return result;
     }
-    
-    // This is nasty, but should hopefully be somewhat faster than doing more checks in the loop
+
+    @SuppressWarnings("unchecked")
     @Override
-    public @NotNull List<MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
-        BooleanFunction<AbstractInsnNode> checker;
+    public @NotNull <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit){
+        AbstractInsnNode node = start.getNext();
+        while(limit-- > 0 && node != null){
+            if(checker.apply(node)){
+                return Optional.of((T)node);
+            }
+            node = node.getNext();
+        }
+
+        return Optional.empty();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public @NotNull <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit){
+        AbstractInsnNode node = start.getPrevious();
+        while(limit-- > 0 && node != null){
+            if(checker.apply(node)){
+                return Optional.of((T)node);
+            }
+            node = node.getPrevious();
+        }
+
+        return Optional.empty();
+    }
+
+    // This is nasty, but should hopefully be somewhat faster than doing more checks in the loop
+    private BooleanFunction<AbstractInsnNode> getMethodChecker(int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
         if(opcode == -1){
             if(owner == null){
                 if(name == null){
                     if(description == null){
-                        checker = (node)->METHOD_OPCODES.contains(node.getOpcode());
+                        return (node)->METHOD_OPCODES.contains(node.getOpcode());
                     }else{
-                        checker = (node)->
+                        return (node)->
                             METHOD_OPCODES.contains(node.getOpcode()) &&
-                            description.equals(((MethodInsnNode)node).desc);
+                                description.equals(((MethodInsnNode)node).desc);
                     }
                 }else{
                     if(description == null){
-                        checker = (node)->
+                        return (node)->
                             METHOD_OPCODES.contains(node.getOpcode()) &&
-                            name.equals(((MethodInsnNode)node).name);
+                                name.equals(((MethodInsnNode)node).name);
                     }else{
-                        checker = (node)->{
+                        return (node)->{
                             if(METHOD_OPCODES.contains(node.getOpcode())){
                                 MethodInsnNode method = (MethodInsnNode)node;
                                 return name.equals(method.name) &&
-                                       description.equals(method.desc);
+                                    description.equals(method.desc);
                             }else{
                                 return false;
                             }
@@ -167,15 +192,15 @@ public class AsmUtilsImpl implements AsmUtils{
             }else{
                 if(name == null){
                     if(description == null){
-                        checker = (node)->
+                        return (node)->
                             METHOD_OPCODES.contains(node.getOpcode()) &&
-                            owner.equals(((MethodInsnNode)node).owner);
+                                owner.equals(((MethodInsnNode)node).owner);
                     }else{
-                        checker = (node)->{
+                        return (node)->{
                             if(METHOD_OPCODES.contains(node.getOpcode())){
                                 MethodInsnNode method = (MethodInsnNode)node;
                                 return description.equals(method.desc) &&
-                                       owner.equals(method.owner);
+                                    owner.equals(method.owner);
                             }else{
                                 return false;
                             }
@@ -183,22 +208,22 @@ public class AsmUtilsImpl implements AsmUtils{
                     }
                 }else{
                     if(description == null){
-                        checker = (node)->{
+                        return (node)->{
                             if(METHOD_OPCODES.contains(node.getOpcode())){
                                 MethodInsnNode method = (MethodInsnNode)node;
                                 return name.equals(method.name) &&
-                                       owner.equals(method.owner);
+                                    owner.equals(method.owner);
                             }else{
                                 return false;
                             }
                         };
                     }else{
-                        checker = (node)->{
+                        return (node)->{
                             if(METHOD_OPCODES.contains(node.getOpcode())){
                                 MethodInsnNode method = (MethodInsnNode)node;
                                 return name.equals(method.name) &&
-                                       owner.equals(method.owner) &&
-                                       description.equals(method.desc);
+                                    owner.equals(method.owner) &&
+                                    description.equals(method.desc);
                             }else{
                                 return false;
                             }
@@ -210,23 +235,23 @@ public class AsmUtilsImpl implements AsmUtils{
             if(owner == null){
                 if(name == null){
                     if(description == null){
-                        checker = (node)->opcode == node.getOpcode();
+                        return (node)->opcode == node.getOpcode();
                     }else{
-                        checker = (node)->
+                        return (node)->
                             opcode == node.getOpcode() &&
-                            description.equals(((MethodInsnNode)node).desc);
+                                description.equals(((MethodInsnNode)node).desc);
                     }
                 }else{
                     if(description == null){
-                        checker = (node)->
+                        return (node)->
                             opcode == node.getOpcode() &&
-                            name.equals(((MethodInsnNode)node).name);
+                                name.equals(((MethodInsnNode)node).name);
                     }else{
-                        checker = (node)->{
+                        return (node)->{
                             if(opcode == node.getOpcode()){
                                 MethodInsnNode method = (MethodInsnNode)node;
                                 return name.equals(method.name) &&
-                                       description.equals(method.desc);
+                                    description.equals(method.desc);
                             }else{
                                 return false;
                             }
@@ -236,15 +261,15 @@ public class AsmUtilsImpl implements AsmUtils{
             }else{
                 if(name == null){
                     if(description == null){
-                        checker = (node)->
+                        return (node)->
                             opcode == node.getOpcode() &&
-                            owner.equals(((MethodInsnNode)node).owner);
+                                owner.equals(((MethodInsnNode)node).owner);
                     }else{
-                        checker = (node)->{
+                        return (node)->{
                             if(opcode == node.getOpcode()){
                                 MethodInsnNode method = (MethodInsnNode)node;
                                 return description.equals(method.desc) &&
-                                       owner.equals(method.owner);
+                                    owner.equals(method.owner);
                             }else{
                                 return false;
                             }
@@ -252,22 +277,22 @@ public class AsmUtilsImpl implements AsmUtils{
                     }
                 }else{
                     if(description == null){
-                        checker = (node)->{
+                        return (node)->{
                             if(opcode == node.getOpcode()){
                                 MethodInsnNode method = (MethodInsnNode)node;
                                 return name.equals(method.name) &&
-                                       owner.equals(method.owner);
+                                    owner.equals(method.owner);
                             }else{
                                 return false;
                             }
                         };
                     }else{
-                        checker = (node)->{
+                        return (node)->{
                             if(opcode == node.getOpcode()){
                                 MethodInsnNode method = (MethodInsnNode)node;
                                 return name.equals(method.name) &&
-                                       owner.equals(method.owner) &&
-                                       description.equals(method.desc);
+                                    owner.equals(method.owner) &&
+                                    description.equals(method.desc);
                             }else{
                                 return false;
                             }
@@ -276,9 +301,23 @@ public class AsmUtilsImpl implements AsmUtils{
                 }
             }
         }
-        return findMatchingNodes(instructions, checker);
     }
-    
+
+    @Override
+    public @NotNull List<MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
+        return findMatchingNodes(instructions, getMethodChecker(opcode, owner, name, description));
+    }
+
+    @Override
+    public @NotNull Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description, int limit){
+        return findNextNode(node, getMethodChecker(opcode, owner, name, description), limit);
+    }
+
+    @Override
+    public @NotNull Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description, int limit){
+        return findPreviousNode(node, getMethodChecker(opcode, owner, name, description), limit);
+    }
+
     @Override
     public @NotNull List<AbstractInsnNode> findSurroundingNodes(@NotNull AbstractInsnNode node, int leading, int trailing){
         List<AbstractInsnNode> nodes = new ArrayList<>();
