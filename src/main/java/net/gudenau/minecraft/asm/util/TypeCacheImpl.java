@@ -15,6 +15,19 @@ public class TypeCacheImpl implements TypeCache{
 
     private final Locker stringLocker = new Locker();
     private final Map<String, WeakReference<Type>> stringCache = new Object2ObjectOpenHashMap<>();
+    {
+        stringLocker.writeLock(()->{
+            // Warm up the primitives since these are `public static final`
+            stringCache.put(Type.VOID_TYPE.getDescriptor(), new WeakReference<>(Type.VOID_TYPE));
+            stringCache.put(Type.BOOLEAN_TYPE.getDescriptor(), new WeakReference<>(Type.BOOLEAN_TYPE));
+            stringCache.put(Type.CHAR_TYPE.getDescriptor(), new WeakReference<>(Type.CHAR_TYPE));
+            stringCache.put(Type.BYTE_TYPE.getDescriptor(), new WeakReference<>(Type.BYTE_TYPE));
+            stringCache.put(Type.SHORT_TYPE.getDescriptor(), new WeakReference<>(Type.SHORT_TYPE));
+            stringCache.put(Type.INT_TYPE.getDescriptor(), new WeakReference<>(Type.INT_TYPE));
+            stringCache.put(Type.LONG_TYPE.getDescriptor(), new WeakReference<>(Type.LONG_TYPE));
+            stringCache.put(Type.DOUBLE_TYPE.getDescriptor(), new WeakReference<>(Type.DOUBLE_TYPE));
+        });
+    }
     
     private final Locker methodLocker = new Locker();
     private final Map<Pair<Type, Type[]>, WeakReference<Type>> methodCache = new Object2ObjectOpenHashMap<>();
