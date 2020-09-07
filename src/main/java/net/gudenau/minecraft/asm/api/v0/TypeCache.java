@@ -28,6 +28,19 @@ public interface TypeCache{
      * @return The type
      * */
     Type getType(String descriptor);
+
+    /**
+     * Gets a Type from a Class.
+     *
+     * I.E.: Object.class
+     *
+     * Do not use this for anything outside the standard lib, it will cause things to get loaded early!
+     *
+     * @param klass The class type
+     *
+     * @return The type
+     * */
+    Type getType(Class<?> klass);
     
     /**
      * Gets an Type from an internal name.

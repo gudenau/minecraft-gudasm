@@ -31,6 +31,9 @@ public class TypeCacheImpl implements TypeCache{
     
     private final Locker methodLocker = new Locker();
     private final Map<Pair<Type, Type[]>, WeakReference<Type>> methodCache = new Object2ObjectOpenHashMap<>();
+
+    private final Locker typeLocker = new Locker();
+    private final Map<Class<?>, WeakReference<Type>> typeCache = new Object2ObjectOpenHashMap<>();
     
     private Type getString(String name, Function<String, Type> factory){
         WeakReference<Type> ref = stringLocker.computeIfAbsent(stringCache, name, (n)->new WeakReference<>(factory.apply(n)));
@@ -46,7 +49,18 @@ public class TypeCacheImpl implements TypeCache{
     public Type getType(String descriptor){
         return getString(descriptor, Type::getType);
     }
-    
+
+    @Override
+    public Type getType(Class<?> klass){
+        WeakReference<Type> ref = typeLocker.computeIfAbsent(typeCache, klass, (n)->new WeakReference<>(Type.getType(n)));
+        Type type = ref.get();
+        if(type == null){
+            type = Type.getType(klass);
+            typeLocker.putIfAbsent(typeCache, klass, new WeakReference<>(type));
+        }
+        return type;
+    }
+
     @Override
     public Type getObjectType(String name){
         return getString(name, Type::getObjectType);
