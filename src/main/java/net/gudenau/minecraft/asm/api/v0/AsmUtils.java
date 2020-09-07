@@ -530,6 +530,37 @@ public interface AsmUtils{
      * @param owner Owner, or null if it doesn't matter
      * @param name Name, or null if it doesn't matter
      * @param description Description, or null if it doesn't matter
+     *
+     * @return A list of all matching method calls
+     * */
+    @NotNull
+    default Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, @Nullable String owner, @Nullable String name, @Nullable String description){
+        return findNextMethodCall(node, -1, owner, name, description, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Searches for the next method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param owner Owner, or null if it doesn't matter
+     * @param name Name, or null if it doesn't matter
+     * @param description Description, or null if it doesn't matter
+     *
+     * @return A list of all matching method calls
+     * */
+    @NotNull
+    default Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
+        return findNextMethodCall(node, opcode, owner, name, description, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Searches for the next method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param owner Owner, or null if it doesn't matter
+     * @param name Name, or null if it doesn't matter
+     * @param description Description, or null if it doesn't matter
      * @param limit The max amount of nodes to check
      *
      * @return A list of all matching method calls
@@ -553,6 +584,37 @@ public interface AsmUtils{
      * */
     @NotNull
     Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description, int limit);
+
+    /**
+     * Searches for the previous method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param owner Owner, or null if it doesn't matter
+     * @param name Name, or null if it doesn't matter
+     * @param description Description, or null if it doesn't matter
+     *
+     * @return A list of all matching method calls
+     * */
+    @NotNull
+    default Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, @Nullable String owner, @Nullable String name, @Nullable String description){
+        return findPreviousMethodCall(node, -1, owner, name, description, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Searches for the previous method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param owner Owner, or null if it doesn't matter
+     * @param name Name, or null if it doesn't matter
+     * @param description Description, or null if it doesn't matter
+     *
+     * @return A list of all matching method calls
+     * */
+    @NotNull
+    default Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
+        return findPreviousMethodCall(node, opcode, owner, name, description, Integer.MAX_VALUE);
+    }
 
     /**
      * Searches for the previous method call after this node.
