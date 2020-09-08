@@ -81,7 +81,7 @@ public class Bootstrap{
         // Clean out the class dump if dumping is enabled
         if(Configuration.DUMP.get() != Configuration.DumpMode.OFF){
             try{
-                FileUtils.delete(loader.getGameDir().resolve("gud").resolve("asm").resolve("dump"));
+                FileUtils.delete(loader.getGameDir().resolve("gudASMDump"));
             }catch(IOException ignored){}
         }
         

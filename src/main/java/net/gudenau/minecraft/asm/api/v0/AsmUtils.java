@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import net.gudenau.minecraft.asm.api.v0.functional.BooleanFunction;
+import net.gudenau.minecraft.asm.api.v0.type.FieldType;
+import net.gudenau.minecraft.asm.api.v0.type.MethodType;
 import net.gudenau.minecraft.asm.util.AsmUtilsImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +17,7 @@ import org.objectweb.asm.tree.*;
 /**
  * General ASM utils.
  * */
-@SuppressWarnings({"unused", "RedundantSuppression"}) // Idea is silly
+@SuppressWarnings({"unused", "RedundantSuppression", "PointlessBitwiseExpression"}) // Idea is silly
 public interface AsmUtils{
     /**
      * Get the handle to AsmUtils.
@@ -34,7 +36,9 @@ public interface AsmUtils{
      * */
     @Deprecated
     @NotNull
-    TypeCache getTypeCache();
+    default TypeCache getTypeCache(){
+        return TypeCache.getTypeCache();
+    }
     
     // --- Annotation stuff ---
     
@@ -71,7 +75,7 @@ public interface AsmUtils{
      *
      * @return True if the annotation is present, false if absent
      * */
-    default boolean hasAnnotation(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
+    default boolean hasAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type){
         return getAnnotation(visibleAnnotations, invisibleAnnotations, type).isPresent();
     }
     
@@ -83,7 +87,8 @@ public interface AsmUtils{
      *
      * @return Found annotations
      * */
-    default List<AnnotationNode> getAnnotations(@NotNull MethodNode method, @NotNull Type type){
+    @NotNull
+    default List<@NotNull AnnotationNode> getAnnotations(@NotNull MethodNode method, @NotNull Type type){
         return getAnnotations(method.visibleAnnotations, method.invisibleAnnotations, type);
     }
     
@@ -95,7 +100,8 @@ public interface AsmUtils{
      *
      * @return Found annotations
      * */
-    default List<AnnotationNode> getAnnotations(@NotNull ClassNode owner, @NotNull Type type){
+    @NotNull
+    default List<@NotNull AnnotationNode> getAnnotations(@NotNull ClassNode owner, @NotNull Type type){
         return getAnnotations(owner.visibleAnnotations, owner.invisibleAnnotations, type);
     }
     
@@ -108,7 +114,8 @@ public interface AsmUtils{
      *
      * @return Found annotations
      * */
-    List<AnnotationNode> getAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type);
+    @NotNull
+    List<@NotNull AnnotationNode> getAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type);
     
     /**
      * Gets the first matching annotation in a method.
@@ -118,6 +125,7 @@ public interface AsmUtils{
      *
      * @return Found annotation
      * */
+    @NotNull
     default Optional<AnnotationNode> getAnnotation(@NotNull MethodNode method, @NotNull Type type){
         return getAnnotation(method.visibleAnnotations, method.invisibleAnnotations, type);
     }
@@ -130,6 +138,7 @@ public interface AsmUtils{
      *
      * @return Found annotations
      * */
+    @NotNull
     default Optional<AnnotationNode> getAnnotation(@NotNull ClassNode owner, @NotNull Type type){
         return getAnnotation(owner.visibleAnnotations, owner.invisibleAnnotations, type);
     }
@@ -143,7 +152,8 @@ public interface AsmUtils{
      *
      * @return Found annotation
      * */
-    Optional<AnnotationNode> getAnnotation(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type);
+    @NotNull
+    Optional<AnnotationNode> getAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type);
     
     /**
      * Adds an annotation to a method.
@@ -185,7 +195,7 @@ public interface AsmUtils{
      * @param visible Are they be visible
      * @param annotations The annotations to add
      * */
-    void addAnnotations(@NotNull MethodNode method, boolean visible, @NotNull Collection<AnnotationNode> annotations);
+    void addAnnotations(@NotNull MethodNode method, boolean visible, @NotNull Collection<@NotNull AnnotationNode> annotations);
     
     /**
      * Adds annotations to a class.
@@ -205,7 +215,7 @@ public interface AsmUtils{
      * @param visible Are they be visible
      * @param annotations The annotations to add
      * */
-    void addAnnotations(@NotNull ClassNode owner, boolean visible, @NotNull Collection<AnnotationNode> annotations);
+    void addAnnotations(@NotNull ClassNode owner, boolean visible, @NotNull Collection<@NotNull AnnotationNode> annotations);
     
     /**
      * Removes annotations from a method.
@@ -234,7 +244,7 @@ public interface AsmUtils{
      * @param invisibleAnnotations The invisible annotations
      * @param annotations The annotations to remove
      * */
-    default boolean removeAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull AnnotationNode... annotations){
+    default boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull AnnotationNode... annotations){
         return removeAnnotations(visibleAnnotations, invisibleAnnotations, Arrays.asList(annotations));
     }
     
@@ -244,7 +254,7 @@ public interface AsmUtils{
      * @param method The method to remove annotations from
      * @param annotations The annotations to remove
      * */
-    default boolean removeAnnotations(@NotNull MethodNode method, @NotNull Collection<AnnotationNode> annotations){
+    default boolean removeAnnotations(@NotNull MethodNode method, @NotNull Collection<@NotNull AnnotationNode> annotations){
         return removeAnnotations(method.visibleAnnotations, method.invisibleAnnotations, annotations);
     }
     
@@ -254,7 +264,7 @@ public interface AsmUtils{
      * @param owner The class to remove annotations from
      * @param annotations The annotations to remove
      * */
-    default boolean removeAnnotations(@NotNull ClassNode owner, @NotNull Collection<AnnotationNode> annotations){
+    default boolean removeAnnotations(@NotNull ClassNode owner, @NotNull Collection<@NotNull AnnotationNode> annotations){
         return removeAnnotations(owner.visibleAnnotations, owner.invisibleAnnotations, annotations);
     }
     
@@ -265,7 +275,7 @@ public interface AsmUtils{
      * @param invisibleAnnotations The invisible annotations
      * @param annotations The annotations to remove
      * */
-    boolean removeAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Collection<AnnotationNode> annotations);
+    boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Collection<@NotNull AnnotationNode> annotations);
     
     /**
      * Removes annotations from a method.
@@ -294,7 +304,7 @@ public interface AsmUtils{
      * @param invisibleAnnotations The invisible annotations
      * @param type The type of the annotations to remove
      * */
-    boolean removeAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type);
+    boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type);
     
     /**
      * Removes an annotation from a method.
@@ -323,7 +333,7 @@ public interface AsmUtils{
      * @param invisibleAnnotations The invisible annotations
      * @param annotation The annotation to remove
      * */
-    default boolean removeAnnotation(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull AnnotationNode annotation){
+    default boolean removeAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull AnnotationNode annotation){
         return removeAnnotations(visibleAnnotations, invisibleAnnotations, Collections.singletonList(annotation));
     }
     
@@ -338,8 +348,9 @@ public interface AsmUtils{
      *
      * @return A list of all matching nodes
      * */
+    @Deprecated
     @NotNull
-    default <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull MethodNode method, int opcode, @NotNull Class<T> type){
+    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, int opcode, @NotNull Class<T> type){
         return findMatchingNodes(method.instructions, (node)->node.getOpcode() == opcode && type.isInstance(node));
     }
     
@@ -353,8 +364,37 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull InsnList instructions, int opcode, @NotNull Class<T> type){
+    @Deprecated
+    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, int opcode, @NotNull Class<T> type){
         return findMatchingNodes(instructions, (node)->node.getOpcode() == opcode && type.isInstance(node));
+    }
+    
+    /**
+     * Finds all nodes in the method that are of the provided type and opcode.
+     *
+     * @param method The method to search
+     * @param opcode The instruction opcode
+     * @param <T> The node type
+     *
+     * @return A list of all matching nodes
+     * */
+    @NotNull
+    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, int opcode){
+        return findMatchingNodes(method.instructions, (node)->node.getOpcode() == opcode);
+    }
+    
+    /**
+     * Finds all nodes in the instructions that are of the provided type and opcode.
+     *
+     * @param instructions The instructions to search
+     * @param opcode The instruction opcode
+     * @param <T> The node type
+     *
+     * @return A list of all matching nodes
+     * */
+    @NotNull
+    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, int opcode){
+        return findMatchingNodes(instructions, (node)->node.getOpcode() == opcode);
     }
     
     /**
@@ -366,7 +406,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull MethodNode method, @NotNull Class<T> type){
+    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, @NotNull Class<T> type){
         return findMatchingNodes(method.instructions, type::isInstance);
     }
     
@@ -379,7 +419,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull InsnList instructions, @NotNull Class<T> type){
+    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, @NotNull Class<T> type){
         return findMatchingNodes(instructions, type::isInstance);
     }
     
@@ -393,7 +433,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull MethodNode method, @NotNull BooleanFunction<AbstractInsnNode> checker){
+    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
         return findMatchingNodes(method.instructions, checker);
     }
     
@@ -407,7 +447,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull InsnList instructions, @NotNull BooleanFunction<AbstractInsnNode> checker);
+    <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker);
 
     /**
      * Finds the next node that matches.
@@ -419,7 +459,7 @@ public interface AsmUtils{
      * @return The found node
      */
     @NotNull
-    default <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker){
+    default <T extends AbstractInsnNode> Optional<@NotNull T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
         return findNextNode(start, checker, Integer.MAX_VALUE);
     }
 
@@ -434,7 +474,7 @@ public interface AsmUtils{
      * @return The found node
      */
     @NotNull
-    <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit);
+    <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker, int limit);
 
     /**
      * Finds the previous node that matches.
@@ -446,7 +486,7 @@ public interface AsmUtils{
      * @return The found node
      */
     @NotNull
-    default <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker){
+    default <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
         return findPreviousNode(start, checker, Integer.MAX_VALUE);
     }
 
@@ -461,10 +501,10 @@ public interface AsmUtils{
      * @return The found node
      */
     @NotNull
-    <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit);
+    <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker, int limit);
 
     /**
-     * Searches for method call instructions in a method.
+     * Searches for method calls instructions in a method.
      *
      * @param method The method to search in
      * @param owner Owner, or null if it doesn't matter
@@ -474,12 +514,13 @@ public interface AsmUtils{
      * @return A list of all matching method calls
      * */
     @NotNull
-    default List<MethodInsnNode> findMethodCalls(@NotNull MethodNode method, @Nullable String owner, @Nullable String name, @Nullable String description){
+    @Deprecated
+    default List<@NotNull MethodInsnNode> findMethodCalls(@NotNull MethodNode method, @Nullable String owner, @Nullable String name, @Nullable String description){
         return findMethodCalls(method.instructions, -1, owner, name, description);
     }
     
     /**
-     * Searches for method call in an instruction list.
+     * Searches for method calls in an instruction list.
      *
      * @param instructions The instructions to search in
      * @param owner Owner, or null if it doesn't matter
@@ -489,12 +530,13 @@ public interface AsmUtils{
      * @return A list of all matching method calls
      * */
     @NotNull
-    default List<MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, @Nullable String owner, @Nullable String name, @Nullable String description){
+    @Deprecated
+    default List<@NotNull MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, @Nullable String owner, @Nullable String name, @Nullable String description){
         return findMethodCalls(instructions, -1, owner, name, description);
     }
     
     /**
-     * Searches for method call instructions in a method.
+     * Searches for method calls instructions in a method.
      *
      * @param method The method to search in
      * @param opcode Opcode, or -1 if it doesn't matter
@@ -505,12 +547,13 @@ public interface AsmUtils{
      * @return A list of all matching method calls
      * */
     @NotNull
-    default List<MethodInsnNode> findMethodCalls(@NotNull MethodNode method, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
+    @Deprecated
+    default List<@NotNull MethodInsnNode> findMethodCalls(@NotNull MethodNode method, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
         return findMethodCalls(method.instructions, opcode, owner, name, description);
     }
     
     /**
-     * Searches for method call in an instruction list.
+     * Searches for method calls in an instruction list.
      *
      * @param instructions The instructions to search in
      * @param opcode Opcode, or -1 if it doesn't matter
@@ -521,7 +564,53 @@ public interface AsmUtils{
      * @return A list of all matching method calls
      * */
     @NotNull
-    List<MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description);
+    @Deprecated
+    List<@NotNull MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description);
+
+    /**
+     * Tells method search methods to ignore the owner of the target method when searching.
+     * */
+    int METHOD_FLAG_IGNORE_OWNER = 1 << 0;
+    /**
+     * Tells method search methods to ignore the name of the target method when searching.
+     * */
+    int METHOD_FLAG_IGNORE_NAME = 1 << 1;
+    /**
+     * Tells method search methods to ignore the description of the target method when searching.
+     * */
+    int METHOD_FLAG_IGNORE_DESCRIPTION = 1 << 2;
+    /**
+     * Tells method search methods to ignore the opcode of the target method when searching.
+     * */
+    int METHOD_FLAG_IGNORE_OPCODE = 1 << 3;
+    
+    /**
+     * Searches for method calls in an instruction list.
+     *
+     * @param instructions The method to search
+     * @param flags Flags to control the search
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param method The method to search for
+     *
+     * @return A list of all matching method calls
+     */
+    @NotNull
+    default List<@NotNull MethodInsnNode> findMethodCalls(@NotNull MethodNode instructions, int flags, int opcode, @NotNull MethodType method){
+        return findMethodCalls(instructions.instructions, flags, opcode, method);
+    }
+    
+    /**
+     * Searches for method calls in an instruction list.
+     *
+     * @param instructions The instructions to search
+     * @param flags Flags to control the search
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param method The method to search for
+     *
+     * @return A list of all matching method calls
+     */
+    @NotNull
+    List<@NotNull MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int flags, int opcode, @NotNull MethodType method);
 
     /**
      * Searches for the next method call after this node.
@@ -531,9 +620,10 @@ public interface AsmUtils{
      * @param name Name, or null if it doesn't matter
      * @param description Description, or null if it doesn't matter
      *
-     * @return A list of all matching method calls
+     * @return The matching method node
      * */
     @NotNull
+    @Deprecated
     default Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, @Nullable String owner, @Nullable String name, @Nullable String description){
         return findNextMethodCall(node, -1, owner, name, description, Integer.MAX_VALUE);
     }
@@ -547,9 +637,10 @@ public interface AsmUtils{
      * @param name Name, or null if it doesn't matter
      * @param description Description, or null if it doesn't matter
      *
-     * @return A list of all matching method calls
+     * @return The matching method node
      * */
     @NotNull
+    @Deprecated
     default Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
         return findNextMethodCall(node, opcode, owner, name, description, Integer.MAX_VALUE);
     }
@@ -563,9 +654,10 @@ public interface AsmUtils{
      * @param description Description, or null if it doesn't matter
      * @param limit The max amount of nodes to check
      *
-     * @return A list of all matching method calls
+     * @return The matching method node
      * */
     @NotNull
+    @Deprecated
     default Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, @Nullable String owner, @Nullable String name, @Nullable String description, int limit){
         return findNextMethodCall(node, -1, owner, name, description, limit);
     }
@@ -580,10 +672,40 @@ public interface AsmUtils{
      * @param description Description, or null if it doesn't matter
      * @param limit The max amount of nodes to check
      *
-     * @return A list of all matching method calls
+     * @return The matching method node
      * */
     @NotNull
+    @Deprecated
     Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description, int limit);
+    
+    /**
+     * Searches for the next method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param flags Flags to control the search
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param method The method to search for
+     *
+     * @return The matching method node
+     * */
+    @NotNull
+    default Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method){
+        return findNextMethodCall(node, flags, opcode, method, Integer.MAX_VALUE);
+    }
+    
+    /**
+     * Searches for the next method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param flags Flags to control the search
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param method The method to search for
+     * @param limit The max amount of nodes to check
+     *
+     * @return The matching method node
+     * */
+    @NotNull
+    Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit);
 
     /**
      * Searches for the previous method call after this node.
@@ -593,9 +715,10 @@ public interface AsmUtils{
      * @param name Name, or null if it doesn't matter
      * @param description Description, or null if it doesn't matter
      *
-     * @return A list of all matching method calls
+     * @return The matching method node
      * */
     @NotNull
+    @Deprecated
     default Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, @Nullable String owner, @Nullable String name, @Nullable String description){
         return findPreviousMethodCall(node, -1, owner, name, description, Integer.MAX_VALUE);
     }
@@ -609,9 +732,10 @@ public interface AsmUtils{
      * @param name Name, or null if it doesn't matter
      * @param description Description, or null if it doesn't matter
      *
-     * @return A list of all matching method calls
+     * @return The matching method node
      * */
     @NotNull
+    @Deprecated
     default Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
         return findPreviousMethodCall(node, opcode, owner, name, description, Integer.MAX_VALUE);
     }
@@ -625,9 +749,10 @@ public interface AsmUtils{
      * @param description Description, or null if it doesn't matter
      * @param limit The max amount of nodes to check
      *
-     * @return A list of all matching method calls
+     * @return The matching method node
      * */
     @NotNull
+    @Deprecated
     default Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, @Nullable String owner, @Nullable String name, @Nullable String description, int limit){
         return findPreviousMethodCall(node, -1, owner, name, description, limit);
     }
@@ -642,10 +767,40 @@ public interface AsmUtils{
      * @param description Description, or null if it doesn't matter
      * @param limit The max amount of nodes to check
      *
-     * @return A list of all matching method calls
+     * @return The matching method node
      * */
     @NotNull
+    @Deprecated
     Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description, int limit);
+    
+    /**
+     * Searches for the previous method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param flags Flags to control the search
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param method The method to search for
+     *
+     * @return The matching method node
+     * */
+    @NotNull
+    default Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method){
+        return findPreviousMethodCall(node, flags, opcode, method, Integer.MAX_VALUE);
+    }
+    
+    /**
+     * Searches for the previous method call after this node.
+     *
+     * @param node The starting point of the search, exclusive
+     * @param flags Flags to control the search
+     * @param opcode Opcode, or -1 if it doesn't matter
+     * @param method The method to search for
+     * @param limit The max amount of nodes to check
+     *
+     * @return The matching method node
+     * */
+    @NotNull
+    Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit);
     
     /**
      * Finds up to count nodes after the provided node.
@@ -658,7 +813,7 @@ public interface AsmUtils{
      * @return A list of count or fewer trailing nodes
      * */
     @NotNull
-    default List<AbstractInsnNode> findTrailingNodes(@NotNull AbstractInsnNode node, int count){
+    default List<@NotNull AbstractInsnNode> findTrailingNodes(@NotNull AbstractInsnNode node, int count){
         List<AbstractInsnNode> nodes = findSurroundingNodes(node, 0, count);
         nodes.remove(0);
         return nodes;
@@ -675,7 +830,7 @@ public interface AsmUtils{
      * @return A list of count or fewer leading nodes
      * */
     @NotNull
-    default List<AbstractInsnNode> findLeadingNodes(@NotNull AbstractInsnNode node, int count){
+    default List<@NotNull AbstractInsnNode> findLeadingNodes(@NotNull AbstractInsnNode node, int count){
         List<AbstractInsnNode> nodes = findSurroundingNodes(node, 0, count);
         nodes.remove(nodes.size() - 1);
         return nodes;
@@ -693,7 +848,7 @@ public interface AsmUtils{
      * @return A list of matching nodes
      * */
     @NotNull
-    List<AbstractInsnNode> findSurroundingNodes(@NotNull AbstractInsnNode node, int leading, int trailing);
+    List<@NotNull AbstractInsnNode> findSurroundingNodes(@NotNull AbstractInsnNode node, int leading, int trailing);
     
     /**
      * Finds return instructions in a method.
@@ -703,7 +858,7 @@ public interface AsmUtils{
      * @return A list of return instructions
      * */
     @NotNull
-    default List<InsnNode> findReturns(@NotNull MethodNode method){
+    default List<@NotNull InsnNode> findReturns(@NotNull MethodNode method){
         return findReturns(method.instructions);
     }
     
@@ -715,7 +870,7 @@ public interface AsmUtils{
      * @return A list of return instructions
      * */
     @NotNull
-    List<InsnNode> findReturns(@NotNull InsnList instructions);
+    List<@NotNull InsnNode> findReturns(@NotNull InsnList instructions);
     
     /**
      * Finds nodes between a beginning and end, exclusive.
@@ -725,7 +880,7 @@ public interface AsmUtils{
      * @return The middle instructions, or null on error
      * */
     @Nullable
-    default List<AbstractInsnNode> findInRange(Pair<AbstractInsnNode, AbstractInsnNode> range){
+    default List<@NotNull AbstractInsnNode> findInRange(@NotNull Pair<@NotNull AbstractInsnNode, @NotNull AbstractInsnNode> range){
         return findInRange(range.getA(), range.getB());
     }
     
@@ -738,7 +893,110 @@ public interface AsmUtils{
      * @return The middle instructions, or null on error
      * */
     @Nullable
-    List<AbstractInsnNode> findInRange(AbstractInsnNode start, AbstractInsnNode end);
+    List<@NotNull AbstractInsnNode> findInRange(@NotNull AbstractInsnNode start, @NotNull AbstractInsnNode end);
+    
+    /**
+     * Tells method search methods to ignore the owner of the target field when searching.
+     * */
+    int FIELD_FLAG_IGNORE_OWNER = 1 << 0;
+    /**
+     * Tells method search methods to ignore the name of the target field when searching.
+     * */
+    int FIELD_FLAG_IGNORE_NAME = 1 << 1;
+    /**
+     * Tells method search methods to ignore the description of the target field when searching.
+     * */
+    int FIELD_FLAG_IGNORE_DESCRIPTION = 1 << 2;
+    /**
+     * Tells method search methods to ignore the opcode of the target field when searching.
+     * */
+    int FIELD_FLAG_IGNORE_OPCODE = 1 << 3;
+    
+    /**
+     * Find field instructions in a method.
+     *
+     * @param method The method to search
+     * @param flags Flags to control how the search works
+     * @param opcode Opcode, -1 if it doesn't matter
+     * @param field The field to look for
+     *
+     * @return The found field instructions
+     */
+    @NotNull
+    default List<@NotNull FieldInsnNode> findFieldNodes(@NotNull MethodNode method, int flags, int opcode, @NotNull FieldType field){
+        return findFieldNodes(method.instructions, flags, opcode, field);
+    }
+    
+    /**
+     * Find field instructions in an instruction list.
+     *
+     * @param instructions The instructions to search
+     * @param flags Flags to control how the search works
+     * @param opcode Opcode, -1 if it doesn't matter
+     * @param field The field to look for
+     *
+     * @return The found field instructions
+     */
+    @NotNull
+    List<@NotNull FieldInsnNode> findFieldNodes(@NotNull InsnList instructions, int flags, int opcode, @NotNull FieldType field);
+    
+    /**
+     * Find the next field instruction in a list.
+     *
+     * @param node The start of the search
+     * @param flags Flags to control how the search works
+     * @param opcode Opcode, -1 if it doesn't matter
+     * @param field The field to look for
+     *
+     * @return The found field instructions
+     */
+    @NotNull
+    default Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field){
+        return findNextFieldNode(node, flags, opcode, field, Integer.MAX_VALUE);
+    }
+    
+    /**
+     * Find the next field instruction in a list.
+     *
+     * @param node The start of the search
+     * @param flags Flags to control how the search works
+     * @param opcode Opcode, -1 if it doesn't matter
+     * @param field The field to look for
+     * @param limit The max amount of nodes to check
+     *
+     * @return The found field instructions
+     */
+    @NotNull
+    Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit);
+    
+    /**
+     * Find the previous field instruction in a list.
+     *
+     * @param node The start of the search
+     * @param flags Flags to control how the search works
+     * @param opcode Opcode, -1 if it doesn't matter
+     * @param field The field to look for
+     *
+     * @return The found field instructions
+     */
+    @NotNull
+    default Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field){
+        return findPreviousFieldNode(node, flags, opcode, field, Integer.MAX_VALUE);
+    }
+    
+    /**
+     * Find the previous field instruction in a list.
+     *
+     * @param node The start of the search
+     * @param flags Flags to control how the search works
+     * @param opcode Opcode, -1 if it doesn't matter
+     * @param field The field to look for
+     * @param limit The max amount of nodes to check
+     *
+     * @return The found field instructions
+     */
+    @NotNull
+    Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit);
 
     // --- Dynamic instruction stuff ---
     

@@ -10,6 +10,8 @@ import java.util.Optional;
 import net.gudenau.minecraft.asm.api.v0.AsmUtils;
 import net.gudenau.minecraft.asm.api.v0.TypeCache;
 import net.gudenau.minecraft.asm.api.v0.functional.BooleanFunction;
+import net.gudenau.minecraft.asm.api.v0.type.FieldType;
+import net.gudenau.minecraft.asm.api.v0.type.MethodType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
@@ -25,16 +27,14 @@ public class AsmUtilsImpl implements AsmUtils{
     private static final IntSet RETURN_OPCODES = new IntOpenHashSet(new int[]{
         IRETURN, LRETURN, FRETURN, DRETURN, ARETURN, RETURN
     });
+    private static final IntSet FIELD_OPCODES = new IntOpenHashSet(new int[]{
+        GETFIELD, PUTFIELD, GETSTATIC, PUTSTATIC
+    });
     
     private AsmUtilsImpl(){}
     
     @Override
-    public @NotNull TypeCache getTypeCache(){
-        return TypeCache.getTypeCache();
-    }
-    
-    @Override
-    public List<AnnotationNode> getAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
+    public @NotNull List<AnnotationNode> getAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
         String desc = type.getDescriptor();
         List<AnnotationNode> annotations = new ArrayList<>();
         if(visibleAnnotations != null && !visibleAnnotations.isEmpty()){
@@ -55,7 +55,7 @@ public class AsmUtilsImpl implements AsmUtils{
     }
     
     @Override
-    public Optional<AnnotationNode> getAnnotation(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
+    public @NotNull Optional<AnnotationNode> getAnnotation(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
         String desc = type.getDescriptor();
         if(visibleAnnotations != null && !visibleAnnotations.isEmpty()){
             for(AnnotationNode annotation : visibleAnnotations){
@@ -159,8 +159,9 @@ public class AsmUtilsImpl implements AsmUtils{
 
         return Optional.empty();
     }
-
+    
     // This is nasty, but should hopefully be somewhat faster than doing more checks in the loop
+    @Deprecated
     private BooleanFunction<AbstractInsnNode> getMethodChecker(int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
         if(opcode == -1){
             if(owner == null){
@@ -302,10 +303,321 @@ public class AsmUtilsImpl implements AsmUtils{
             }
         }
     }
+    
+    private boolean checkFlag(int flag, int flags){
+        return (flags & flag) != 0;
+    }
+    
+    private BooleanFunction<AbstractInsnNode> getMethodChecker(int flags, int opcode, @NotNull MethodType type){
+        boolean ignoreOpcode = checkFlag(METHOD_FLAG_IGNORE_OPCODE, flags) || opcode == -1;
+        boolean ignoreOwner = checkFlag(METHOD_FLAG_IGNORE_OWNER, flags);
+        boolean ignoreName = checkFlag(METHOD_FLAG_IGNORE_NAME, flags);
+        boolean ignoreDesc = checkFlag(METHOD_FLAG_IGNORE_DESCRIPTION, flags);
+        
+        String owner = type.getOwner().getInternalName();
+        String name = type.getName();
+        String description = type.getDescriptor().getDescriptor();
+        
+        if(ignoreOpcode){
+            if(ignoreOwner){
+                if(ignoreName){
+                    if(ignoreDesc){
+                        return (node)->METHOD_OPCODES.contains(node.getOpcode());
+                    }else{
+                        return (node)->
+                            METHOD_OPCODES.contains(node.getOpcode()) &&
+                            description.equals(((MethodInsnNode)node).desc);
+                    }
+                }else{
+                    if(ignoreDesc){
+                        return (node)->
+                            METHOD_OPCODES.contains(node.getOpcode()) &&
+                            name.equals(((MethodInsnNode)node).name);
+                    }else{
+                        return (node)->{
+                            if(METHOD_OPCODES.contains(node.getOpcode())){
+                                MethodInsnNode method = (MethodInsnNode)node;
+                                return name.equals(method.name) &&
+                                       description.equals(method.desc);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }
+            }else{
+                if(ignoreName){
+                    if(ignoreDesc){
+                        return (node)->
+                            METHOD_OPCODES.contains(node.getOpcode()) &&
+                            owner.equals(((MethodInsnNode)node).owner);
+                    }else{
+                        return (node)->{
+                            if(METHOD_OPCODES.contains(node.getOpcode())){
+                                MethodInsnNode method = (MethodInsnNode)node;
+                                return description.equals(method.desc) &&
+                                       owner.equals(method.owner);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }else{
+                    if(ignoreDesc){
+                        return (node)->{
+                            if(METHOD_OPCODES.contains(node.getOpcode())){
+                                MethodInsnNode method = (MethodInsnNode)node;
+                                return name.equals(method.name) &&
+                                       owner.equals(method.owner);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }else{
+                        return (node)->{
+                            if(METHOD_OPCODES.contains(node.getOpcode())){
+                                MethodInsnNode method = (MethodInsnNode)node;
+                                return name.equals(method.name) &&
+                                       owner.equals(method.owner) &&
+                                       description.equals(method.desc);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }
+            }
+        }else{
+            if(ignoreOwner){
+                if(ignoreName){
+                    if(ignoreDesc){
+                        return (node)->opcode == node.getOpcode();
+                    }else{
+                        return (node)->
+                            opcode == node.getOpcode() &&
+                            description.equals(((MethodInsnNode)node).desc);
+                    }
+                }else{
+                    if(ignoreDesc){
+                        return (node)->
+                            opcode == node.getOpcode() &&
+                            name.equals(((MethodInsnNode)node).name);
+                    }else{
+                        return (node)->{
+                            if(opcode == node.getOpcode()){
+                                MethodInsnNode method = (MethodInsnNode)node;
+                                return name.equals(method.name) &&
+                                       description.equals(method.desc);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }
+            }else{
+                if(ignoreName){
+                    if(ignoreDesc){
+                        return (node)->
+                            opcode == node.getOpcode() &&
+                            owner.equals(((MethodInsnNode)node).owner);
+                    }else{
+                        return (node)->{
+                            if(opcode == node.getOpcode()){
+                                MethodInsnNode method = (MethodInsnNode)node;
+                                return description.equals(method.desc) &&
+                                       owner.equals(method.owner);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }else{
+                    if(ignoreDesc){
+                        return (node)->{
+                            if(opcode == node.getOpcode()){
+                                MethodInsnNode method = (MethodInsnNode)node;
+                                return name.equals(method.name) &&
+                                       owner.equals(method.owner);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }else{
+                        return (node)->{
+                            if(opcode == node.getOpcode()){
+                                MethodInsnNode method = (MethodInsnNode)node;
+                                return name.equals(method.name) &&
+                                       owner.equals(method.owner) &&
+                                       description.equals(method.desc);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }
+            }
+        }
+    }
+    
+    private BooleanFunction<AbstractInsnNode> getFieldChecker(int flags, int opcode, @NotNull FieldType type){
+        boolean ignoreOpcode = checkFlag(FIELD_FLAG_IGNORE_OPCODE, flags) || opcode == -1;
+        boolean ignoreOwner = checkFlag(FIELD_FLAG_IGNORE_OWNER, flags);
+        boolean ignoreName = checkFlag(FIELD_FLAG_IGNORE_NAME, flags);
+        boolean ignoreDesc = checkFlag(FIELD_FLAG_IGNORE_DESCRIPTION, flags);
+        
+        String owner = type.getOwner().getInternalName();
+        String name = type.getName();
+        String description = type.getDescriptor().getDescriptor();
+        
+        if(ignoreOpcode){
+            if(ignoreOwner){
+                if(ignoreName){
+                    if(ignoreDesc){
+                        return (node)->FIELD_OPCODES.contains(node.getOpcode());
+                    }else{
+                        return (node)->
+                            FIELD_OPCODES.contains(node.getOpcode()) &&
+                            description.equals(((FieldInsnNode)node).desc);
+                    }
+                }else{
+                    if(ignoreDesc){
+                        return (node)->
+                            FIELD_OPCODES.contains(node.getOpcode()) &&
+                            name.equals(((FieldInsnNode)node).name);
+                    }else{
+                        return (node)->{
+                            if(FIELD_OPCODES.contains(node.getOpcode())){
+                                FieldInsnNode field = (FieldInsnNode)node;
+                                return name.equals(field.name) &&
+                                       description.equals(field.desc);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }
+            }else{
+                if(ignoreName){
+                    if(ignoreDesc){
+                        return (node)->
+                            FIELD_OPCODES.contains(node.getOpcode()) &&
+                            owner.equals(((FieldInsnNode)node).owner);
+                    }else{
+                        return (node)->{
+                            if(FIELD_OPCODES.contains(node.getOpcode())){
+                                FieldInsnNode field = (FieldInsnNode)node;
+                                return description.equals(field.desc) &&
+                                       owner.equals(field.owner);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }else{
+                    if(ignoreDesc){
+                        return (node)->{
+                            if(FIELD_OPCODES.contains(node.getOpcode())){
+                                FieldInsnNode field = (FieldInsnNode)node;
+                                return name.equals(field.name) &&
+                                       owner.equals(field.owner);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }else{
+                        return (node)->{
+                            if(FIELD_OPCODES.contains(node.getOpcode())){
+                                FieldInsnNode field = (FieldInsnNode)node;
+                                return name.equals(field.name) &&
+                                       owner.equals(field.owner) &&
+                                       description.equals(field.desc);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }
+            }
+        }else{
+            if(ignoreOwner){
+                if(ignoreName){
+                    if(ignoreDesc){
+                        return (node)->opcode == node.getOpcode();
+                    }else{
+                        return (node)->
+                            opcode == node.getOpcode() &&
+                            description.equals(((FieldInsnNode)node).desc);
+                    }
+                }else{
+                    if(ignoreDesc){
+                        return (node)->
+                            opcode == node.getOpcode() &&
+                            name.equals(((FieldInsnNode)node).name);
+                    }else{
+                        return (node)->{
+                            if(opcode == node.getOpcode()){
+                                FieldInsnNode field = (FieldInsnNode)node;
+                                return name.equals(field.name) &&
+                                       description.equals(field.desc);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }
+            }else{
+                if(ignoreName){
+                    if(ignoreDesc){
+                        return (node)->
+                            opcode == node.getOpcode() &&
+                            owner.equals(((FieldInsnNode)node).owner);
+                    }else{
+                        return (node)->{
+                            if(opcode == node.getOpcode()){
+                                FieldInsnNode field = (FieldInsnNode)node;
+                                return description.equals(field.desc) &&
+                                       owner.equals(field.owner);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }else{
+                    if(ignoreDesc){
+                        return (node)->{
+                            if(opcode == node.getOpcode()){
+                                FieldInsnNode field = (FieldInsnNode)node;
+                                return name.equals(field.name) &&
+                                       owner.equals(field.owner);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }else{
+                        return (node)->{
+                            if(opcode == node.getOpcode()){
+                                FieldInsnNode field = (FieldInsnNode)node;
+                                return name.equals(field.name) &&
+                                       owner.equals(field.owner) &&
+                                       description.equals(field.desc);
+                            }else{
+                                return false;
+                            }
+                        };
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public @NotNull List<MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description){
         return findMatchingNodes(instructions, getMethodChecker(opcode, owner, name, description));
+    }
+
+    @Override
+    public @NotNull List<@NotNull MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int flags, int opcode, @NotNull MethodType method){
+        return findMatchingNodes(instructions, getMethodChecker(flags, opcode, method));
     }
 
     @Override
@@ -314,8 +626,18 @@ public class AsmUtilsImpl implements AsmUtils{
     }
 
     @Override
+    public @NotNull Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit){
+        return findNextNode(node, getMethodChecker(flags, opcode, method), limit);
+    }
+
+    @Override
     public @NotNull Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int opcode, @Nullable String owner, @Nullable String name, @Nullable String description, int limit){
         return findPreviousNode(node, getMethodChecker(opcode, owner, name, description), limit);
+    }
+
+    @Override
+    public @NotNull Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit){
+        return findPreviousNode(node, getMethodChecker(flags, opcode, method), limit);
     }
 
     @Override
@@ -348,7 +670,7 @@ public class AsmUtilsImpl implements AsmUtils{
     }
     
     @Override
-    public @Nullable List<AbstractInsnNode> findInRange(AbstractInsnNode start, AbstractInsnNode end){
+    public @Nullable List<AbstractInsnNode> findInRange(@NotNull AbstractInsnNode start, @NotNull AbstractInsnNode end){
         List<AbstractInsnNode> nodes = new ArrayList<>();
         AbstractInsnNode current = start.getNext();
         while(current != null && current != end){
@@ -358,6 +680,21 @@ public class AsmUtilsImpl implements AsmUtils{
         return current == null ? null : nodes;
     }
     
+    @Override
+    public @NotNull List<@NotNull FieldInsnNode> findFieldNodes(@NotNull InsnList instructions, int flags, int opcode, @NotNull FieldType field){
+        return findMatchingNodes(instructions, getFieldChecker(flags, opcode, field));
+    }
+    
+    @Override
+    public @NotNull Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit){
+        return findNextNode(node, getFieldChecker(flags, opcode, field), limit);
+    }
+    
+    @Override
+    public @NotNull Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit){
+        return findPreviousNode(node, getFieldChecker(flags, opcode, field), limit);
+    }
+
     @Override
     public int getOpcodeFromHandleTag(int tag){
         switch(tag){

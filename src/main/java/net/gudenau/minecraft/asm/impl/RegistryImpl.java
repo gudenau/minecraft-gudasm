@@ -51,7 +51,7 @@ public class RegistryImpl implements AsmRegistry{
     @SuppressWarnings("OptionalAssignedToNull")
     public Optional<ClassCache> getCache(){
         if(cache == null){
-            if(classCaches.isEmpty()){
+            if(classCaches.isEmpty() || !Configuration.ENABLE_CACHE.get()){
                 cache = Optional.empty();
             }else{
                 String enabled = Configuration.ENABLED_CACHE.get();

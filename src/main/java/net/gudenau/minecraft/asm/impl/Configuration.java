@@ -24,7 +24,12 @@ public class Configuration{
     /**
      * Selects the enable class cache, if available.
      * */
-    public static final Value<String> ENABLED_CACHE = new ListValue("cache", RegistryImpl.INSTANCE.getCacheNames());
+    public static final Value<String> ENABLED_CACHE = new ListValue("cacheType", RegistryImpl.INSTANCE.getCacheNames());
+    
+    /**
+     * Enables the cache.
+     * */
+    public static final Value<Boolean> ENABLE_CACHE = new BooleanValue("cacheEnable", true);
     
     /**
      * The class dumping mode for debugging.
@@ -35,6 +40,7 @@ public class Configuration{
     static{
         Map<String, Value<?>> values = new Object2ObjectOpenHashMap<>();
         values.put(ENABLED_CACHE.getName(), ENABLED_CACHE);
+        values.put(ENABLE_CACHE.getName(), ENABLE_CACHE);
         values.put(DUMP.getName(), DUMP);
         VALUES = Collections.unmodifiableMap(values);
         
@@ -74,7 +80,7 @@ public class Configuration{
             Files.createDirectories(gudConfig);
         }
         
-        Path configPath = gudConfig.resolve("asm.cfg");
+        Path configPath = gudConfig.resolve("asm.conf");
         if(Files.exists(configPath)){
             Map<String, String> rawConfig = new Object2ObjectOpenHashMap<>();
             try(BufferedReader reader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8)){
@@ -90,7 +96,7 @@ public class Configuration{
                     index = line.indexOf("=");
                     if(index == -1){
                         System.err.printf(
-                            "Invalid line \"%s\" in \"gud/asm.cfg\"",
+                            "Invalid line \"%s\" in \"gud/asm.conf\"",
                             original
                         );
                     }
@@ -149,7 +155,7 @@ public class Configuration{
             Files.createDirectories(gudConfig);
         }
     
-        Path configPath = gudConfig.resolve("asm.cfg");
+        Path configPath = gudConfig.resolve("asm.conf");
         
         try(BufferedWriter writer = Files.newBufferedWriter(configPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE)){
             for(String key : keys){
@@ -220,6 +226,12 @@ public class Configuration{
                 }
                 return null;
             });
+        }
+    }
+    
+    private static class BooleanValue extends Value<Boolean>{
+        BooleanValue(String name, boolean defaultValue){
+            super(name, defaultValue, Boolean::valueOf);
         }
     }
 }

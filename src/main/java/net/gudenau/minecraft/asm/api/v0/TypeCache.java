@@ -7,12 +7,14 @@ import org.objectweb.asm.Type;
 /**
  * Type cache to try and keep less instances floating around.
  * */
+@Deprecated // This is just annoying
 public interface TypeCache{
     /**
      * Get the handle to the Type cache.
      *
      * @return The handle to the type cache
      * */
+    @Deprecated
     @NotNull
     static TypeCache getTypeCache(){
         return TypeCacheImpl.INSTANCE;
@@ -27,6 +29,7 @@ public interface TypeCache{
      *
      * @return The type
      * */
+    @Deprecated
     Type getType(String descriptor);
 
     /**
@@ -40,6 +43,7 @@ public interface TypeCache{
      *
      * @return The type
      * */
+    @Deprecated
     Type getType(Class<?> klass);
     
     /**
@@ -51,6 +55,7 @@ public interface TypeCache{
      *
      * @return The type
      * */
+    @Deprecated
     Type getObjectType(String name);
     
     /**
@@ -62,6 +67,7 @@ public interface TypeCache{
      *
      * @return The method type
      * */
+    @Deprecated
     Type getMethodType(String descriptor);
     
     /**
@@ -72,5 +78,6 @@ public interface TypeCache{
      *
      * @return The method type
      * */
+    @Deprecated
     Type getMethodType(Type returnType, Type... arguments);
 }
