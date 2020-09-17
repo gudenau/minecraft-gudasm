@@ -1,8 +1,10 @@
 package net.gudenau.minecraft.asm.impl;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import net.gudenau.minecraft.asm.api.v0.ClassCache;
 import net.gudenau.minecraft.asm.api.v0.AsmRegistry;
@@ -16,9 +18,9 @@ public class RegistryImpl implements AsmRegistry{
     private final List<Transformer> earlyTransformers = new LinkedList<>();
     private final List<Transformer> transformers = new LinkedList<>();
     private final List<ClassCache> classCaches = new LinkedList<>();
+    private final Set<String> blacklist = new HashSet<>();
     
     private volatile Boolean frozen = null;
-    private MixinTransformer transformer;
     
     private RegistryImpl(){}
     
@@ -27,7 +29,7 @@ public class RegistryImpl implements AsmRegistry{
         if(frozen == null || frozen){
             throw new RuntimeException("Attempted to register transformer outside initializer");
         }
-        this.transformer.blacklistPackage(transformer.getClass().getPackage().getName());
+        blacklist.add(transformer.getClass().getPackage().getName());
         earlyTransformers.add(transformer);
     }
     
@@ -36,7 +38,7 @@ public class RegistryImpl implements AsmRegistry{
         if(frozen == null || frozen){
             throw new RuntimeException("Attempted to register transformer outside initializer");
         }
-        this.transformer.blacklistPackage(transformer.getClass().getPackage().getName());
+        blacklist.add(transformer.getClass().getPackage().getName());
         transformers.add(transformer);
     }
     
@@ -45,7 +47,7 @@ public class RegistryImpl implements AsmRegistry{
         if(frozen == null || frozen){
             throw new RuntimeException("Attempted to register class cache outside initializer");
         }
-        this.transformer.blacklistPackage(transformer.getClass().getPackage().getName());
+        blacklist.add(cache.getClass().getPackage().getName());
         classCaches.add(cache);
     }
     
@@ -99,6 +101,8 @@ public class RegistryImpl implements AsmRegistry{
     }
     
     public void setTransformer(MixinTransformer transformer){
-        this.transformer = transformer;
+        for(String pack : blacklist){
+            transformer.blacklistPackage(pack);
+        }
     }
 }
