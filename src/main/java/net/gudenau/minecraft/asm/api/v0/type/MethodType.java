@@ -1,6 +1,5 @@
 package net.gudenau.minecraft.asm.api.v0.type;
 
-import net.gudenau.minecraft.asm.api.v0.TypeCache;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
@@ -28,7 +27,7 @@ public final class MethodType{
      * @param params The parameters of this method
      */
     public MethodType(@NotNull Type owner, @NotNull String name, @NotNull Type type, @NotNull Type... params){
-        this(owner, name, TypeCache.getTypeCache().getMethodType(type, params));
+        this(owner, name, Type.getMethodType(type, params));
     }
 
     /**

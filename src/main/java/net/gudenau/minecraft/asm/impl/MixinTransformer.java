@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import net.fabricmc.loader.api.FabricLoader;
-import net.gudenau.minecraft.asm.api.v0.AsmUtils;
 import net.gudenau.minecraft.asm.api.v0.ClassCache;
 import net.gudenau.minecraft.asm.api.v0.Transformer;
 import net.gudenau.minecraft.asm.util.AsmUtilsImpl;
@@ -36,7 +35,7 @@ import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
  * Our custom "mixin" transformer.
  * */
 public class MixinTransformer extends FabricMixinTransformerProxy{
-    private static final Type ANNOTATION_FORCE_BOOTLOADER = AsmUtils.getInstance().getTypeCache().getObjectType("net/gudenau/minecraft/asm/api/v0/annotation/ForceBootloader");
+    private static final Type ANNOTATION_FORCE_BOOTLOADER = Type.getObjectType("net/gudenau/minecraft/asm/api/v0/annotation/ForceBootloader");
     
     private static final Set<String> BLACKLIST = new HashSet<>(Arrays.asList(
         "net.gudenau.minecraft.asm.",

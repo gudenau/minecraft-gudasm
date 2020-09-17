@@ -13,7 +13,7 @@ import java.util.Objects;
  *  - The field name
  *  - The field descriptor
  */
-public class FieldType{
+public final class FieldType{
     @NotNull private final Type owner;
     @NotNull private final String name;
     @NotNull private final Type descriptor;
