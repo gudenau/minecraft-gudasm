@@ -18,6 +18,7 @@ public class RegistryImpl implements AsmRegistry{
     private final List<ClassCache> classCaches = new LinkedList<>();
     
     private volatile Boolean frozen = null;
+    private MixinTransformer transformer;
     
     private RegistryImpl(){}
     
@@ -26,6 +27,7 @@ public class RegistryImpl implements AsmRegistry{
         if(frozen == null || frozen){
             throw new RuntimeException("Attempted to register transformer outside initializer");
         }
+        this.transformer.blacklistPackage(transformer.getClass().getPackage().getName());
         earlyTransformers.add(transformer);
     }
     
@@ -34,6 +36,7 @@ public class RegistryImpl implements AsmRegistry{
         if(frozen == null || frozen){
             throw new RuntimeException("Attempted to register transformer outside initializer");
         }
+        this.transformer.blacklistPackage(transformer.getClass().getPackage().getName());
         transformers.add(transformer);
     }
     
@@ -42,6 +45,7 @@ public class RegistryImpl implements AsmRegistry{
         if(frozen == null || frozen){
             throw new RuntimeException("Attempted to register class cache outside initializer");
         }
+        this.transformer.blacklistPackage(transformer.getClass().getPackage().getName());
         classCaches.add(cache);
     }
     
@@ -92,5 +96,9 @@ public class RegistryImpl implements AsmRegistry{
         }else{
             this.frozen |= frozen;
         }
+    }
+    
+    public void setTransformer(MixinTransformer transformer){
+        this.transformer = transformer;
     }
 }

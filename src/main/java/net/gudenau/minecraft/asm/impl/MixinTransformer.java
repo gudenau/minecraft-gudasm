@@ -255,6 +255,10 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
         }
     }
     
+    public void blacklistPackage(String name){
+        BLACKLIST.add(name);
+    }
+    
     static class Cache extends MixinTransformer{
         private final ClassCache cache;
     

@@ -112,6 +112,7 @@ public class Bootstrap{
             
             // Create our transformer
             MixinTransformer customTransformer = enableCache ? new MixinTransformer.Cache(originalTransformer, cache) : new MixinTransformer(originalTransformer);
+            RegistryImpl.INSTANCE.setTransformer(customTransformer);
             
             // Restore the original to keep the environment as sane as possible
             MixinEnvironment$transformer$setter.invokeExact(originalTransformer);
