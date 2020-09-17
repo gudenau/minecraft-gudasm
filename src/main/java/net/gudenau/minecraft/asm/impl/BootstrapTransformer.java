@@ -4,7 +4,6 @@ import java.util.List;
 import net.gudenau.minecraft.asm.api.v0.AsmUtils;
 import net.gudenau.minecraft.asm.api.v0.Identifier;
 import net.gudenau.minecraft.asm.api.v0.Transformer;
-import net.gudenau.minecraft.asm.api.v0.TypeCache;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -29,16 +28,9 @@ public class BootstrapTransformer implements Transformer{
     }
     
     private static final AsmUtils ASM_UTILS = AsmUtils.getInstance();
-    private static final Type FORCEBOOTLOADER;
-    private static final Type ASM_FORCEINLINE;
-    private static final Type JVM_FORCEINLINE;
-    
-    static{
-        TypeCache cache = ASM_UTILS.getTypeCache();
-        FORCEBOOTLOADER = cache.getObjectType("net/gudenau/minecraft/asm/api/v0/annotation/ForceBootloader");
-        ASM_FORCEINLINE = cache.getObjectType("net/gudenau/minecraft/asm/api/v0/annotation/ForceInline");
-        JVM_FORCEINLINE = cache.getObjectType("jdk/internal/vm/annotation/ForceInline");
-    }
+    private static final Type FORCEBOOTLOADER = Type.getObjectType("net/gudenau/minecraft/asm/api/v0/annotation/ForceBootloader");
+    private static final Type ASM_FORCEINLINE = Type.getObjectType("net/gudenau/minecraft/asm/api/v0/annotation/ForceInline");
+    private static final Type JVM_FORCEINLINE = Type.getObjectType("jdk/internal/vm/annotation/ForceInline");
     
     @Override
     public Identifier getName(){
