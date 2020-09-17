@@ -2,14 +2,8 @@ package net.gudenau.minecraft.asm.impl;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.metadata.EntrypointMetadata;
-import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.gudenau.minecraft.asm.api.v0.AsmInitializer;
 import net.gudenau.minecraft.asm.api.v0.ClassCache;
 import net.gudenau.minecraft.asm.util.FileUtils;
@@ -29,40 +23,14 @@ public class Bootstrap{
             e.printStackTrace();
         }
     
-        // Load all the other stuff we will need
         FabricLoader loader = FabricLoader.getInstance();
-        Set<String> entryClasses = new HashSet<>();
-        for(ModContainer mod : loader.getAllMods()){
-            ModMetadata rawMeta = mod.getMetadata();
-            if(rawMeta instanceof LoaderModMetadata){
-                List<EntrypointMetadata> entrypoints = ((LoaderModMetadata)rawMeta).getEntrypoints("gud_asm");
-                if(entrypoints == null || entrypoints.isEmpty()){
-                    continue;
-                }
-    
-                for(EntrypointMetadata entrypoint : entrypoints){
-                    entryClasses.add(entrypoint.getValue());
-                }
-            }
-        }
-        
         RegistryImpl registry = RegistryImpl.INSTANCE;
-        
-        // And call them all
+    
         registry.setFrozen(false);
-        if(!entryClasses.isEmpty()){
-            for(String entryClass : entryClasses){
-                try{
-                    Class<?> klass = Class.forName(entryClass);
-                    if(AsmInitializer.class.isAssignableFrom(klass)){
-                        //noinspection unchecked
-                        ((Class<? extends AsmInitializer>)klass).getDeclaredConstructor()
-                            .newInstance()
-                            .onInitializeAsm();
-                    }
-                }catch(Throwable t){
-                    new RuntimeException(entryClass + " encountered an error", t).printStackTrace();
-                }
+        for(EntrypointContainer<AsmInitializer> container : loader.getEntrypointContainers("gud_asm", AsmInitializer.class)){
+            AsmInitializer initializer = container.getEntrypoint();
+            if(initializer != null){
+                initializer.onInitializeAsm();
             }
         }
         registry.setFrozen(true);
