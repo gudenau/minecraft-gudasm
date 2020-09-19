@@ -128,8 +128,7 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
             //FIXME, this is stupid
             List<Transformer> transformers = this.transformers;
             if(shouldBootstrap){
-                List<Transformer> newList = new ArrayList<>();
-                Collections.copy(newList, this.transformers);
+                List<Transformer> newList = new ArrayList<>(this.transformers);
                 newList.add(BOOTSTRAP_TRANSFORMER);
                 transformers = newList;
             }
