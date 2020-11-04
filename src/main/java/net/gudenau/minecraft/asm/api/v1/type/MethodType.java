@@ -1,9 +1,8 @@
-package net.gudenau.minecraft.asm.api.v0.type;
-
-import org.jetbrains.annotations.NotNull;
-import org.objectweb.asm.Type;
+package net.gudenau.minecraft.asm.api.v1.type;
 
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Type;
 
 /**
  * A simple method type that contains the fully qualified type of a method.

@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import net.gudenau.minecraft.asm.api.v0.ClassCache;
-import net.gudenau.minecraft.asm.api.v0.AsmRegistry;
-import net.gudenau.minecraft.asm.api.v0.Identifier;
-import net.gudenau.minecraft.asm.api.v0.Transformer;
+import net.gudenau.minecraft.asm.api.v1.ClassCache;
+import net.gudenau.minecraft.asm.api.v1.AsmRegistry;
+import net.gudenau.minecraft.asm.api.v1.Identifier;
+import net.gudenau.minecraft.asm.api.v1.Transformer;
 
 // Basic registry implementation
 public class RegistryImpl implements AsmRegistry{

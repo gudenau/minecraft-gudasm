@@ -1,4 +1,4 @@
-package net.gudenau.minecraft.asm.api.v0.functional;
+package net.gudenau.minecraft.asm.api.v1.functional;
 
 /**
  * A {@link java.util.function.Function} that returns a boolean.

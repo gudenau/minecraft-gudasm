@@ -1,32 +1,34 @@
-package net.gudenau.minecraft.asm.api.v0;
+package net.gudenau.minecraft.asm.api.v1;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import net.gudenau.minecraft.asm.api.v0.functional.BooleanFunction;
-import net.gudenau.minecraft.asm.api.v0.type.FieldType;
-import net.gudenau.minecraft.asm.api.v0.type.MethodType;
+import net.gudenau.minecraft.asm.api.v1.functional.BooleanFunction;
+import net.gudenau.minecraft.asm.api.v1.type.FieldType;
+import net.gudenau.minecraft.asm.api.v1.type.MethodType;
 import net.gudenau.minecraft.asm.util.AsmUtilsImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.*;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.AnnotationNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 
 /**
  * General ASM utils.
  * */
 @SuppressWarnings({"unused", "RedundantSuppression", "PointlessBitwiseExpression"}) // Idea is silly
-public interface AsmUtils{
-    /**
-     * Get the handle to AsmUtils.
-     *
-     * @return The AsmUtils handle
-     * */
-    @NotNull
-    static AsmUtils getInstance(){
-        return AsmUtilsImpl.INSTANCE;
+public final class AsmUtils{
+    private AsmUtils(){
+        throw new RuntimeException("Stop, get some help.");
     }
     
     // --- Annotation stuff ---
@@ -39,7 +41,7 @@ public interface AsmUtils{
      *
      * @return True if the annotation is present, false if absent
      * */
-    default boolean hasAnnotation(@NotNull MethodNode methodNode, @NotNull Type type){
+    public static boolean hasAnnotation(@NotNull MethodNode methodNode, @NotNull Type type){
         return hasAnnotation(methodNode.visibleAnnotations, methodNode.invisibleAnnotations, type);
     }
     
@@ -51,7 +53,7 @@ public interface AsmUtils{
      *
      * @return True if the annotation is present, false if absent
      * */
-    default boolean hasAnnotation(@NotNull ClassNode owner, @NotNull Type type){
+    public static boolean hasAnnotation(@NotNull ClassNode owner, @NotNull Type type){
         return hasAnnotation(owner.visibleAnnotations, owner.invisibleAnnotations, type);
     }
     
@@ -64,7 +66,7 @@ public interface AsmUtils{
      *
      * @return True if the annotation is present, false if absent
      * */
-    default boolean hasAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type){
+    public static boolean hasAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type){
         return getAnnotation(visibleAnnotations, invisibleAnnotations, type).isPresent();
     }
     
@@ -77,7 +79,7 @@ public interface AsmUtils{
      * @return Found annotations
      * */
     @NotNull
-    default List<@NotNull AnnotationNode> getAnnotations(@NotNull MethodNode method, @NotNull Type type){
+    public static List<@NotNull AnnotationNode> getAnnotations(@NotNull MethodNode method, @NotNull Type type){
         return getAnnotations(method.visibleAnnotations, method.invisibleAnnotations, type);
     }
     
@@ -90,7 +92,7 @@ public interface AsmUtils{
      * @return Found annotations
      * */
     @NotNull
-    default List<@NotNull AnnotationNode> getAnnotations(@NotNull ClassNode owner, @NotNull Type type){
+    public static List<@NotNull AnnotationNode> getAnnotations(@NotNull ClassNode owner, @NotNull Type type){
         return getAnnotations(owner.visibleAnnotations, owner.invisibleAnnotations, type);
     }
     
@@ -104,7 +106,9 @@ public interface AsmUtils{
      * @return Found annotations
      * */
     @NotNull
-    List<@NotNull AnnotationNode> getAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type);
+    public static List<@NotNull AnnotationNode> getAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type){
+        return AsmUtilsImpl.getAnnotations(visibleAnnotations, invisibleAnnotations, type);
+    }
     
     /**
      * Gets the first matching annotation in a method.
@@ -115,7 +119,7 @@ public interface AsmUtils{
      * @return Found annotation
      * */
     @NotNull
-    default Optional<AnnotationNode> getAnnotation(@NotNull MethodNode method, @NotNull Type type){
+    public static Optional<AnnotationNode> getAnnotation(@NotNull MethodNode method, @NotNull Type type){
         return getAnnotation(method.visibleAnnotations, method.invisibleAnnotations, type);
     }
     
@@ -128,7 +132,7 @@ public interface AsmUtils{
      * @return Found annotations
      * */
     @NotNull
-    default Optional<AnnotationNode> getAnnotation(@NotNull ClassNode owner, @NotNull Type type){
+    public static Optional<AnnotationNode> getAnnotation(@NotNull ClassNode owner, @NotNull Type type){
         return getAnnotation(owner.visibleAnnotations, owner.invisibleAnnotations, type);
     }
     
@@ -142,7 +146,9 @@ public interface AsmUtils{
      * @return Found annotation
      * */
     @NotNull
-    Optional<AnnotationNode> getAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type);
+    public static Optional<AnnotationNode> getAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type){
+        return AsmUtilsImpl.getAnnotation(visibleAnnotations, invisibleAnnotations, type);
+    }
     
     /**
      * Adds an annotation to a method.
@@ -151,7 +157,7 @@ public interface AsmUtils{
      * @param visible Are they be visible
      * @param annotation The annotation to add
      * */
-    default void addAnnotation(@NotNull MethodNode method, boolean visible, @NotNull AnnotationNode annotation){
+    public static void addAnnotation(@NotNull MethodNode method, boolean visible, @NotNull AnnotationNode annotation){
         addAnnotations(method, visible, Collections.singletonList(annotation));
     }
     
@@ -162,7 +168,7 @@ public interface AsmUtils{
      * @param visible Are they be visible
      * @param annotation The annotation to add
      * */
-    default void addAnnotation(@NotNull ClassNode owner, boolean visible, @NotNull AnnotationNode annotation){
+    public static void addAnnotation(@NotNull ClassNode owner, boolean visible, @NotNull AnnotationNode annotation){
         addAnnotations(owner, visible, Collections.singletonList(annotation));
     }
     
@@ -173,7 +179,7 @@ public interface AsmUtils{
      * @param visible Are they be visible
      * @param annotations The annotations to add
      * */
-    default void addAnnotations(@NotNull MethodNode method, boolean visible, @NotNull AnnotationNode... annotations){
+    public static void addAnnotations(@NotNull MethodNode method, boolean visible, @NotNull AnnotationNode... annotations){
         addAnnotations(method, visible, Arrays.asList(annotations));
     }
     
@@ -184,7 +190,9 @@ public interface AsmUtils{
      * @param visible Are they be visible
      * @param annotations The annotations to add
      * */
-    void addAnnotations(@NotNull MethodNode method, boolean visible, @NotNull Collection<@NotNull AnnotationNode> annotations);
+    public static void addAnnotations(@NotNull MethodNode method, boolean visible, @NotNull Collection<@NotNull AnnotationNode> annotations){
+        AsmUtilsImpl.addAnnotations(method, visible, annotations);
+    }
     
     /**
      * Adds annotations to a class.
@@ -193,7 +201,7 @@ public interface AsmUtils{
      * @param visible Are they be visible
      * @param annotations The annotations to add
      * */
-    default void addAnnotations(@NotNull ClassNode owner, boolean visible, @NotNull AnnotationNode... annotations){
+    public static void addAnnotations(@NotNull ClassNode owner, boolean visible, @NotNull AnnotationNode... annotations){
         addAnnotations(owner, visible, Arrays.asList(annotations));
     }
     
@@ -204,7 +212,9 @@ public interface AsmUtils{
      * @param visible Are they be visible
      * @param annotations The annotations to add
      * */
-    void addAnnotations(@NotNull ClassNode owner, boolean visible, @NotNull Collection<@NotNull AnnotationNode> annotations);
+    public static void addAnnotations(@NotNull ClassNode owner, boolean visible, @NotNull Collection<@NotNull AnnotationNode> annotations){
+        AsmUtilsImpl.addAnnotations(owner, visible, annotations);
+    }
     
     /**
      * Removes annotations from a method.
@@ -212,7 +222,7 @@ public interface AsmUtils{
      * @param method The method to remove annotations from
      * @param annotations The annotations to remove
      * */
-    default boolean removeAnnotations(@NotNull MethodNode method, @NotNull AnnotationNode... annotations){
+    public static boolean removeAnnotations(@NotNull MethodNode method, @NotNull AnnotationNode... annotations){
         return removeAnnotations(method.visibleAnnotations, method.invisibleAnnotations, annotations);
     }
     
@@ -222,7 +232,7 @@ public interface AsmUtils{
      * @param owner The class to remove annotations from
      * @param annotations The annotations to remove
      * */
-    default boolean removeAnnotations(@NotNull ClassNode owner, @NotNull AnnotationNode... annotations){
+    public static boolean removeAnnotations(@NotNull ClassNode owner, @NotNull AnnotationNode... annotations){
         return removeAnnotations(owner.visibleAnnotations, owner.invisibleAnnotations, annotations);
     }
     
@@ -233,7 +243,7 @@ public interface AsmUtils{
      * @param invisibleAnnotations The invisible annotations
      * @param annotations The annotations to remove
      * */
-    default boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull AnnotationNode... annotations){
+    public static boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull AnnotationNode... annotations){
         return removeAnnotations(visibleAnnotations, invisibleAnnotations, Arrays.asList(annotations));
     }
     
@@ -243,7 +253,7 @@ public interface AsmUtils{
      * @param method The method to remove annotations from
      * @param annotations The annotations to remove
      * */
-    default boolean removeAnnotations(@NotNull MethodNode method, @NotNull Collection<@NotNull AnnotationNode> annotations){
+    public static boolean removeAnnotations(@NotNull MethodNode method, @NotNull Collection<@NotNull AnnotationNode> annotations){
         return removeAnnotations(method.visibleAnnotations, method.invisibleAnnotations, annotations);
     }
     
@@ -253,7 +263,7 @@ public interface AsmUtils{
      * @param owner The class to remove annotations from
      * @param annotations The annotations to remove
      * */
-    default boolean removeAnnotations(@NotNull ClassNode owner, @NotNull Collection<@NotNull AnnotationNode> annotations){
+    public static boolean removeAnnotations(@NotNull ClassNode owner, @NotNull Collection<@NotNull AnnotationNode> annotations){
         return removeAnnotations(owner.visibleAnnotations, owner.invisibleAnnotations, annotations);
     }
     
@@ -264,7 +274,9 @@ public interface AsmUtils{
      * @param invisibleAnnotations The invisible annotations
      * @param annotations The annotations to remove
      * */
-    boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Collection<@NotNull AnnotationNode> annotations);
+    public static boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Collection<@NotNull AnnotationNode> annotations){
+        return AsmUtilsImpl.removeAnnotations(visibleAnnotations, invisibleAnnotations, annotations);
+    }
     
     /**
      * Removes annotations from a method.
@@ -272,7 +284,7 @@ public interface AsmUtils{
      * @param method The method to remove annotations from
      * @param type The type of the annotations to remove
      * */
-    default boolean removeAnnotations(@NotNull MethodNode method, @NotNull Type type){
+    public static boolean removeAnnotations(@NotNull MethodNode method, @NotNull Type type){
         return removeAnnotations(method.visibleAnnotations, method.invisibleAnnotations, type);
     }
     
@@ -282,7 +294,7 @@ public interface AsmUtils{
      * @param owner The class to remove annotations from
      * @param type The type of the annotations to remove
      * */
-    default boolean removeAnnotations(@NotNull ClassNode owner, @NotNull Type type){
+    public static boolean removeAnnotations(@NotNull ClassNode owner, @NotNull Type type){
         return removeAnnotations(owner.visibleAnnotations, owner.invisibleAnnotations, type);
     }
     
@@ -293,7 +305,9 @@ public interface AsmUtils{
      * @param invisibleAnnotations The invisible annotations
      * @param type The type of the annotations to remove
      * */
-    boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type);
+    public static boolean removeAnnotations(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull Type type){
+        return AsmUtilsImpl.removeAnnotations(visibleAnnotations, invisibleAnnotations, type);
+    }
     
     /**
      * Removes an annotation from a method.
@@ -301,7 +315,7 @@ public interface AsmUtils{
      * @param method The method to remove an annotation from
      * @param annotation The annotation to remove
      * */
-    default boolean removeAnnotation(@NotNull MethodNode method, @NotNull AnnotationNode annotation){
+    public static boolean removeAnnotation(@NotNull MethodNode method, @NotNull AnnotationNode annotation){
         return removeAnnotation(method.visibleAnnotations, method.invisibleAnnotations, annotation);
     }
     
@@ -311,7 +325,7 @@ public interface AsmUtils{
      * @param owner The class to remove an annotation from
      * @param annotation The annotation to remove
      * */
-    default boolean removeAnnotation(@NotNull ClassNode owner, @NotNull AnnotationNode annotation){
+    public static boolean removeAnnotation(@NotNull ClassNode owner, @NotNull AnnotationNode annotation){
         return removeAnnotation(owner.visibleAnnotations, owner.invisibleAnnotations, annotation);
     }
     
@@ -322,7 +336,7 @@ public interface AsmUtils{
      * @param invisibleAnnotations The invisible annotations
      * @param annotation The annotation to remove
      * */
-    default boolean removeAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull AnnotationNode annotation){
+    public static boolean removeAnnotation(@Nullable List<@NotNull AnnotationNode> visibleAnnotations, @Nullable List<@NotNull AnnotationNode> invisibleAnnotations, @NotNull AnnotationNode annotation){
         return removeAnnotations(visibleAnnotations, invisibleAnnotations, Collections.singletonList(annotation));
     }
     
@@ -338,7 +352,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, int opcode){
+    public static <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, int opcode){
         return findMatchingNodes(method.instructions, (node)->node.getOpcode() == opcode);
     }
     
@@ -352,7 +366,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, int opcode){
+    public static <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, int opcode){
         return findMatchingNodes(instructions, (node)->node.getOpcode() == opcode);
     }
     
@@ -365,7 +379,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, @NotNull Class<T> type){
+    public static <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, @NotNull Class<T> type){
         return findMatchingNodes(method.instructions, type::isInstance);
     }
     
@@ -378,7 +392,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, @NotNull Class<T> type){
+    public static <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, @NotNull Class<T> type){
         return findMatchingNodes(instructions, type::isInstance);
     }
     
@@ -392,7 +406,7 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    default <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
+    public static <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull MethodNode method, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
         return findMatchingNodes(method.instructions, checker);
     }
     
@@ -406,7 +420,9 @@ public interface AsmUtils{
      * @return A list of all matching nodes
      * */
     @NotNull
-    <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker);
+    public static <T extends AbstractInsnNode> List<@NotNull T> findMatchingNodes(@NotNull InsnList instructions, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
+        return AsmUtilsImpl.findMatchingNodes(instructions, checker);
+    }
 
     /**
      * Finds the next node that matches.
@@ -418,7 +434,7 @@ public interface AsmUtils{
      * @return The found node
      */
     @NotNull
-    default <T extends AbstractInsnNode> Optional<@NotNull T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
+    public static <T extends AbstractInsnNode> Optional<@NotNull T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
         return findNextNode(start, checker, Integer.MAX_VALUE);
     }
 
@@ -433,7 +449,9 @@ public interface AsmUtils{
      * @return The found node
      */
     @NotNull
-    <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker, int limit);
+    public static <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker, int limit){
+        return AsmUtilsImpl.findNextNode(start, checker, limit);
+    }
 
     /**
      * Finds the previous node that matches.
@@ -445,7 +463,7 @@ public interface AsmUtils{
      * @return The found node
      */
     @NotNull
-    default <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
+    public static <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker){
         return findPreviousNode(start, checker, Integer.MAX_VALUE);
     }
 
@@ -460,24 +478,26 @@ public interface AsmUtils{
      * @return The found node
      */
     @NotNull
-    <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker, int limit);
+    public static <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<@NotNull AbstractInsnNode> checker, int limit){
+        return AsmUtilsImpl.findPreviousNode(start, checker, limit);
+    }
 
     /**
      * Tells method search methods to ignore the owner of the target method when searching.
      * */
-    int METHOD_FLAG_IGNORE_OWNER = 1 << 0;
+    public static final int METHOD_FLAG_IGNORE_OWNER = 1 << 0;
     /**
      * Tells method search methods to ignore the name of the target method when searching.
      * */
-    int METHOD_FLAG_IGNORE_NAME = 1 << 1;
+    public static final int METHOD_FLAG_IGNORE_NAME = 1 << 1;
     /**
      * Tells method search methods to ignore the description of the target method when searching.
      * */
-    int METHOD_FLAG_IGNORE_DESCRIPTION = 1 << 2;
+    public static final int METHOD_FLAG_IGNORE_DESCRIPTION = 1 << 2;
     /**
      * Tells method search methods to ignore the opcode of the target method when searching.
      * */
-    int METHOD_FLAG_IGNORE_OPCODE = 1 << 3;
+    public static final int METHOD_FLAG_IGNORE_OPCODE = 1 << 3;
     
     /**
      * Searches for method calls in an instruction list.
@@ -490,7 +510,7 @@ public interface AsmUtils{
      * @return A list of all matching method calls
      */
     @NotNull
-    default List<@NotNull MethodInsnNode> findMethodCalls(@NotNull MethodNode instructions, int flags, int opcode, @NotNull MethodType method){
+    public static List<@NotNull MethodInsnNode> findMethodCalls(@NotNull MethodNode instructions, int flags, int opcode, @NotNull MethodType method){
         return findMethodCalls(instructions.instructions, flags, opcode, method);
     }
     
@@ -505,7 +525,9 @@ public interface AsmUtils{
      * @return A list of all matching method calls
      */
     @NotNull
-    List<@NotNull MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int flags, int opcode, @NotNull MethodType method);
+    public static List<@NotNull MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int flags, int opcode, @NotNull MethodType method){
+        return AsmUtilsImpl.findMethodCalls(instructions, flags, opcode, method);
+    }
     
     /**
      * Searches for the next method call after this node.
@@ -518,7 +540,7 @@ public interface AsmUtils{
      * @return The matching method node
      * */
     @NotNull
-    default Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method){
+    public static Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method){
         return findNextMethodCall(node, flags, opcode, method, Integer.MAX_VALUE);
     }
     
@@ -534,7 +556,9 @@ public interface AsmUtils{
      * @return The matching method node
      * */
     @NotNull
-    Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit);
+    public static Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit){
+        return AsmUtilsImpl.findNextMethodCall(node, flags, opcode, method, limit);
+    }
     
     /**
      * Searches for the previous method call after this node.
@@ -547,7 +571,7 @@ public interface AsmUtils{
      * @return The matching method node
      * */
     @NotNull
-    default Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method){
+    public static Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method){
         return findPreviousMethodCall(node, flags, opcode, method, Integer.MAX_VALUE);
     }
     
@@ -563,7 +587,9 @@ public interface AsmUtils{
      * @return The matching method node
      * */
     @NotNull
-    Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit);
+    public static Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit){
+        return AsmUtilsImpl.findPreviousMethodCall(node, flags, opcode, method, limit);
+    }
     
     /**
      * Finds up to count nodes after the provided node.
@@ -576,7 +602,7 @@ public interface AsmUtils{
      * @return A list of count or fewer trailing nodes
      * */
     @NotNull
-    default List<@NotNull AbstractInsnNode> findTrailingNodes(@NotNull AbstractInsnNode node, int count){
+    public static List<@NotNull AbstractInsnNode> findTrailingNodes(@NotNull AbstractInsnNode node, int count){
         List<AbstractInsnNode> nodes = findSurroundingNodes(node, 0, count);
         nodes.remove(0);
         return nodes;
@@ -593,7 +619,7 @@ public interface AsmUtils{
      * @return A list of count or fewer leading nodes
      * */
     @NotNull
-    default List<@NotNull AbstractInsnNode> findLeadingNodes(@NotNull AbstractInsnNode node, int count){
+    public static List<@NotNull AbstractInsnNode> findLeadingNodes(@NotNull AbstractInsnNode node, int count){
         List<AbstractInsnNode> nodes = findSurroundingNodes(node, 0, count);
         nodes.remove(nodes.size() - 1);
         return nodes;
@@ -611,7 +637,9 @@ public interface AsmUtils{
      * @return A list of matching nodes
      * */
     @NotNull
-    List<@NotNull AbstractInsnNode> findSurroundingNodes(@NotNull AbstractInsnNode node, int leading, int trailing);
+    public static List<@NotNull AbstractInsnNode> findSurroundingNodes(@NotNull AbstractInsnNode node, int leading, int trailing){
+        return AsmUtilsImpl.findSurroundingNodes(node, leading, trailing);
+    }
     
     /**
      * Finds return instructions in a method.
@@ -621,7 +649,7 @@ public interface AsmUtils{
      * @return A list of return instructions
      * */
     @NotNull
-    default List<@NotNull InsnNode> findReturns(@NotNull MethodNode method){
+    public static List<@NotNull InsnNode> findReturns(@NotNull MethodNode method){
         return findReturns(method.instructions);
     }
     
@@ -633,7 +661,9 @@ public interface AsmUtils{
      * @return A list of return instructions
      * */
     @NotNull
-    List<@NotNull InsnNode> findReturns(@NotNull InsnList instructions);
+    public static List<@NotNull InsnNode> findReturns(@NotNull InsnList instructions){
+        return AsmUtilsImpl.findReturns(instructions);
+    }
     
     /**
      * Finds nodes between a beginning and end, exclusive.
@@ -643,7 +673,7 @@ public interface AsmUtils{
      * @return The middle instructions, or null on error
      * */
     @Nullable
-    default List<@NotNull AbstractInsnNode> findInRange(@NotNull Pair<@NotNull AbstractInsnNode, @NotNull AbstractInsnNode> range){
+    public static List<@NotNull AbstractInsnNode> findInRange(@NotNull Pair<@NotNull AbstractInsnNode, @NotNull AbstractInsnNode> range){
         return findInRange(range.getA(), range.getB());
     }
     
@@ -656,24 +686,26 @@ public interface AsmUtils{
      * @return The middle instructions, or null on error
      * */
     @Nullable
-    List<@NotNull AbstractInsnNode> findInRange(@NotNull AbstractInsnNode start, @NotNull AbstractInsnNode end);
+    public static List<@NotNull AbstractInsnNode> findInRange(@NotNull AbstractInsnNode start, @NotNull AbstractInsnNode end){
+        return AsmUtilsImpl.findInRange(start, end);
+    }
     
     /**
      * Tells method search methods to ignore the owner of the target field when searching.
      * */
-    int FIELD_FLAG_IGNORE_OWNER = 1 << 0;
+    public static final int FIELD_FLAG_IGNORE_OWNER = 1 << 0;
     /**
      * Tells method search methods to ignore the name of the target field when searching.
      * */
-    int FIELD_FLAG_IGNORE_NAME = 1 << 1;
+    public static final int FIELD_FLAG_IGNORE_NAME = 1 << 1;
     /**
      * Tells method search methods to ignore the description of the target field when searching.
      * */
-    int FIELD_FLAG_IGNORE_DESCRIPTION = 1 << 2;
+    public static final int FIELD_FLAG_IGNORE_DESCRIPTION = 1 << 2;
     /**
      * Tells method search methods to ignore the opcode of the target field when searching.
      * */
-    int FIELD_FLAG_IGNORE_OPCODE = 1 << 3;
+    public static final int FIELD_FLAG_IGNORE_OPCODE = 1 << 3;
     
     /**
      * Find field instructions in a method.
@@ -686,7 +718,7 @@ public interface AsmUtils{
      * @return The found field instructions
      */
     @NotNull
-    default List<@NotNull FieldInsnNode> findFieldNodes(@NotNull MethodNode method, int flags, int opcode, @NotNull FieldType field){
+    public static List<@NotNull FieldInsnNode> findFieldNodes(@NotNull MethodNode method, int flags, int opcode, @NotNull FieldType field){
         return findFieldNodes(method.instructions, flags, opcode, field);
     }
     
@@ -701,7 +733,9 @@ public interface AsmUtils{
      * @return The found field instructions
      */
     @NotNull
-    List<@NotNull FieldInsnNode> findFieldNodes(@NotNull InsnList instructions, int flags, int opcode, @NotNull FieldType field);
+    public static List<@NotNull FieldInsnNode> findFieldNodes(@NotNull InsnList instructions, int flags, int opcode, @NotNull FieldType field){
+        return AsmUtilsImpl.findFieldNodes(instructions, flags, opcode, field);
+    }
     
     /**
      * Find the next field instruction in a list.
@@ -714,7 +748,7 @@ public interface AsmUtils{
      * @return The found field instructions
      */
     @NotNull
-    default Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field){
+    public static Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field){
         return findNextFieldNode(node, flags, opcode, field, Integer.MAX_VALUE);
     }
     
@@ -730,7 +764,9 @@ public interface AsmUtils{
      * @return The found field instructions
      */
     @NotNull
-    Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit);
+    public static Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit){
+        return AsmUtilsImpl.findNextFieldNode(node, flags, opcode, field, limit);
+    }
     
     /**
      * Find the previous field instruction in a list.
@@ -743,7 +779,7 @@ public interface AsmUtils{
      * @return The found field instructions
      */
     @NotNull
-    default Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field){
+    public static Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field){
         return findPreviousFieldNode(node, flags, opcode, field, Integer.MAX_VALUE);
     }
     
@@ -759,7 +795,9 @@ public interface AsmUtils{
      * @return The found field instructions
      */
     @NotNull
-    Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit);
+    public static Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit){
+        return AsmUtilsImpl.findPreviousFieldNode(node, flags, opcode, field, limit);
+    }
 
     // --- Dynamic instruction stuff ---
     
@@ -770,7 +808,7 @@ public interface AsmUtils{
      *
      * @return The handle's corresponding opcode
      * */
-    default int getOpcodeFromHandle(@NotNull Handle handle){
+    public static int getOpcodeFromHandle(@NotNull Handle handle){
         return getOpcodeFromHandleTag(handle.getTag());
     }
     
@@ -781,7 +819,9 @@ public interface AsmUtils{
      *
      * @return The tag's corresponding opcode
      * */
-    int getOpcodeFromHandleTag(int tag);
+    public static int getOpcodeFromHandleTag(int tag){
+        return AsmUtilsImpl.getOpcodeFromHandleTag(tag);
+    }
     
     /**
      * Translates an instruction's opcode into a handle tag.
@@ -790,7 +830,7 @@ public interface AsmUtils{
      *
      * @return The instruction's corresponding tag
      * */
-    default int getHandleTagFromInstruction(@NotNull AbstractInsnNode instruction){
+    public static int getHandleTagFromInstruction(@NotNull AbstractInsnNode instruction){
         return getHandleTagFromOpcode(instruction.getOpcode());
     }
     
@@ -801,7 +841,9 @@ public interface AsmUtils{
      *
      * @return The opcode's corresponding tag
      * */
-    int getHandleTagFromOpcode(int opcode);
+    public static int getHandleTagFromOpcode(int opcode){
+        return AsmUtilsImpl.getHandleTagFromOpcode(opcode);
+    }
     
     // --- Code generation stuff ---
     
@@ -813,7 +855,7 @@ public interface AsmUtils{
      * @return The instruction list
      * */
     @NotNull
-    default InsnList createExceptionList(@NotNull Type type){
+    public static InsnList createExceptionList(@NotNull Type type){
         return createExceptionList(type, null);
     }
     
@@ -826,7 +868,9 @@ public interface AsmUtils{
      * @return The instruction list
      * */
     @NotNull
-    InsnList createExceptionList(@NotNull Type type, @Nullable String message);
+    public static InsnList createExceptionList(@NotNull Type type, @Nullable String message){
+        return AsmUtilsImpl.createExceptionList(type, message);
+    }
     
     // -- ClassNode stuff --
     
@@ -840,7 +884,9 @@ public interface AsmUtils{
      * @return The method
      * */
     @NotNull
-    Optional<MethodNode> findMethod(@NotNull ClassNode owner, @NotNull String name, @NotNull String desc);
+    public static Optional<MethodNode> findMethod(@NotNull ClassNode owner, @NotNull String name, @NotNull String desc){
+        return AsmUtilsImpl.findMethod(owner, name, desc);
+    }
     
     // --- Misc ---
     
@@ -852,7 +898,7 @@ public interface AsmUtils{
      * @return The name of the instruction
      * */
     @NotNull
-    default String getInstructionName(@NotNull AbstractInsnNode instruction){
+    public static String getInstructionName(@NotNull AbstractInsnNode instruction){
         return getOpcodeName(instruction.getOpcode());
     }
     
@@ -864,5 +910,7 @@ public interface AsmUtils{
      * @return The name of the opcode
      * */
     @NotNull
-    String getOpcodeName(int opcode);
+    public static String getOpcodeName(int opcode){
+        return AsmUtilsImpl.getOpcodeName(opcode);
+    }
 }

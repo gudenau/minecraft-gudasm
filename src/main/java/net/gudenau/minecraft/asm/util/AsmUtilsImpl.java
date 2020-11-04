@@ -7,20 +7,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import net.gudenau.minecraft.asm.api.v0.AsmUtils;
-import net.gudenau.minecraft.asm.api.v0.functional.BooleanFunction;
-import net.gudenau.minecraft.asm.api.v0.type.FieldType;
-import net.gudenau.minecraft.asm.api.v0.type.MethodType;
+import net.gudenau.minecraft.asm.api.v1.functional.BooleanFunction;
+import net.gudenau.minecraft.asm.api.v1.type.FieldType;
+import net.gudenau.minecraft.asm.api.v1.type.MethodType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
+import static net.gudenau.minecraft.asm.api.v1.AsmUtils.*;
 import static org.objectweb.asm.Opcodes.*;
 
 @SuppressWarnings("DuplicatedCode")
-public class AsmUtilsImpl implements AsmUtils{
-    public static final AsmUtils INSTANCE = new AsmUtilsImpl();
+public class AsmUtilsImpl{
     private static final IntSet METHOD_OPCODES = new IntOpenHashSet(new int[]{
         INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC, INVOKEINTERFACE
     });
@@ -33,8 +32,8 @@ public class AsmUtilsImpl implements AsmUtils{
     
     private AsmUtilsImpl(){}
     
-    @Override
-    public @NotNull List<AnnotationNode> getAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
+    
+    public static @NotNull List<AnnotationNode> getAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
         String desc = type.getDescriptor();
         List<AnnotationNode> annotations = new ArrayList<>();
         if(visibleAnnotations != null && !visibleAnnotations.isEmpty()){
@@ -54,8 +53,8 @@ public class AsmUtilsImpl implements AsmUtils{
         return annotations;
     }
     
-    @Override
-    public @NotNull Optional<AnnotationNode> getAnnotation(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
+    
+    public static @NotNull Optional<AnnotationNode> getAnnotation(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
         String desc = type.getDescriptor();
         if(visibleAnnotations != null && !visibleAnnotations.isEmpty()){
             for(AnnotationNode annotation : visibleAnnotations){
@@ -74,8 +73,8 @@ public class AsmUtilsImpl implements AsmUtils{
         return Optional.empty();
     }
     
-    @Override
-    public void addAnnotations(@NotNull MethodNode method, boolean visible, @NotNull Collection<AnnotationNode> annotations){
+    
+    public static void addAnnotations(@NotNull MethodNode method, boolean visible, @NotNull Collection<AnnotationNode> annotations){
         List<AnnotationNode> nodes = visible ? method.visibleAnnotations : method.invisibleAnnotations;
         if(nodes == null){
             nodes = new ArrayList<>();
@@ -88,8 +87,8 @@ public class AsmUtilsImpl implements AsmUtils{
         nodes.addAll(annotations);
     }
     
-    @Override
-    public void addAnnotations(@NotNull ClassNode owner, boolean visible, @NotNull Collection<AnnotationNode> annotations){
+    
+    public static void addAnnotations(@NotNull ClassNode owner, boolean visible, @NotNull Collection<AnnotationNode> annotations){
         List<AnnotationNode> nodes = visible ? owner.visibleAnnotations : owner.invisibleAnnotations;
         if(nodes == null){
             nodes = new ArrayList<>();
@@ -102,8 +101,8 @@ public class AsmUtilsImpl implements AsmUtils{
         nodes.addAll(annotations);
     }
     
-    @Override
-    public boolean removeAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Collection<AnnotationNode> annotations){
+    
+    public static boolean removeAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Collection<AnnotationNode> annotations){
         boolean change = false;
         if(visibleAnnotations != null && !visibleAnnotations.isEmpty()){
             change = visibleAnnotations.removeAll(annotations);
@@ -114,15 +113,15 @@ public class AsmUtilsImpl implements AsmUtils{
         return change;
     }
     
-    @Override
-    public boolean removeAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
+    
+    public static boolean removeAnnotations(@Nullable List<AnnotationNode> visibleAnnotations, @Nullable List<AnnotationNode> invisibleAnnotations, @NotNull Type type){
         //TODO make this less stupid
         return removeAnnotations(visibleAnnotations, invisibleAnnotations, getAnnotations(visibleAnnotations, invisibleAnnotations, type));
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public @NotNull <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull InsnList instructions, @NotNull BooleanFunction<AbstractInsnNode> checker){
+    
+    public static @NotNull <T extends AbstractInsnNode> List<T> findMatchingNodes(@NotNull InsnList instructions, @NotNull BooleanFunction<AbstractInsnNode> checker){
         List<T> result = new ArrayList<>();
         for(AbstractInsnNode instruction : instructions){
             if(checker.apply(instruction)){
@@ -133,8 +132,8 @@ public class AsmUtilsImpl implements AsmUtils{
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public @NotNull <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit){
+    
+    public static @NotNull <T extends AbstractInsnNode> Optional<T> findNextNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit){
         AbstractInsnNode node = start.getNext();
         while(limit-- > 0 && node != null){
             if(checker.apply(node)){
@@ -147,8 +146,8 @@ public class AsmUtilsImpl implements AsmUtils{
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public @NotNull <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit){
+    
+    public static @NotNull <T extends AbstractInsnNode> Optional<T> findPreviousNode(@NotNull AbstractInsnNode start, @NotNull BooleanFunction<AbstractInsnNode> checker, int limit){
         AbstractInsnNode node = start.getPrevious();
         while(limit-- > 0 && node != null){
             if(checker.apply(node)){
@@ -160,12 +159,12 @@ public class AsmUtilsImpl implements AsmUtils{
         return Optional.empty();
     }
     
-    private boolean checkFlag(int flag, int flags){
+    private static boolean checkFlag(int flag, int flags){
         return (flags & flag) != 0;
     }
     
     // This is kinda nasty, but could be worse
-    private BooleanFunction<AbstractInsnNode> getMethodChecker(int flags, int opcode, @NotNull MethodType type){
+    private static BooleanFunction<AbstractInsnNode> getMethodChecker(int flags, int opcode, @NotNull MethodType type){
         boolean ignoreOpcode = checkFlag(METHOD_FLAG_IGNORE_OPCODE, flags) || opcode == -1;
         boolean ignoreOwner = checkFlag(METHOD_FLAG_IGNORE_OWNER, flags);
         boolean ignoreName = checkFlag(METHOD_FLAG_IGNORE_NAME, flags);
@@ -316,7 +315,7 @@ public class AsmUtilsImpl implements AsmUtils{
         }
     }
     
-    private BooleanFunction<AbstractInsnNode> getFieldChecker(int flags, int opcode, @NotNull FieldType type){
+    private static BooleanFunction<AbstractInsnNode> getFieldChecker(int flags, int opcode, @NotNull FieldType type){
         boolean ignoreOpcode = checkFlag(FIELD_FLAG_IGNORE_OPCODE, flags) || opcode == -1;
         boolean ignoreOwner = checkFlag(FIELD_FLAG_IGNORE_OWNER, flags);
         boolean ignoreName = checkFlag(FIELD_FLAG_IGNORE_NAME, flags);
@@ -467,23 +466,23 @@ public class AsmUtilsImpl implements AsmUtils{
         }
     }
 
-    @Override
-    public @NotNull List<@NotNull MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int flags, int opcode, @NotNull MethodType method){
+    
+    public static @NotNull List<@NotNull MethodInsnNode> findMethodCalls(@NotNull InsnList instructions, int flags, int opcode, @NotNull MethodType method){
         return findMatchingNodes(instructions, getMethodChecker(flags, opcode, method));
     }
 
-    @Override
-    public @NotNull Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit){
+    
+    public static @NotNull Optional<MethodInsnNode> findNextMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit){
         return findNextNode(node, getMethodChecker(flags, opcode, method), limit);
     }
 
-    @Override
-    public @NotNull Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit){
+    
+    public static @NotNull Optional<MethodInsnNode> findPreviousMethodCall(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull MethodType method, int limit){
         return findPreviousNode(node, getMethodChecker(flags, opcode, method), limit);
     }
 
-    @Override
-    public @NotNull List<AbstractInsnNode> findSurroundingNodes(@NotNull AbstractInsnNode node, int leading, int trailing){
+    
+    public static @NotNull List<AbstractInsnNode> findSurroundingNodes(@NotNull AbstractInsnNode node, int leading, int trailing){
         List<AbstractInsnNode> nodes = new ArrayList<>();
         AbstractInsnNode current = node.getPrevious();
         if(leading > 0){
@@ -506,13 +505,13 @@ public class AsmUtilsImpl implements AsmUtils{
         return nodes;
     }
 
-    @Override
-    public @NotNull List<InsnNode> findReturns(@NotNull InsnList instructions){
+    
+    public static @NotNull List<InsnNode> findReturns(@NotNull InsnList instructions){
         return findMatchingNodes(instructions, (node)->RETURN_OPCODES.contains(node.getOpcode()));
     }
     
-    @Override
-    public @Nullable List<AbstractInsnNode> findInRange(@NotNull AbstractInsnNode start, @NotNull AbstractInsnNode end){
+    
+    public static @Nullable List<AbstractInsnNode> findInRange(@NotNull AbstractInsnNode start, @NotNull AbstractInsnNode end){
         List<AbstractInsnNode> nodes = new ArrayList<>();
         AbstractInsnNode current = start.getNext();
         while(current != null && current != end){
@@ -522,23 +521,23 @@ public class AsmUtilsImpl implements AsmUtils{
         return current == null ? null : nodes;
     }
     
-    @Override
-    public @NotNull List<@NotNull FieldInsnNode> findFieldNodes(@NotNull InsnList instructions, int flags, int opcode, @NotNull FieldType field){
+    
+    public static @NotNull List<@NotNull FieldInsnNode> findFieldNodes(@NotNull InsnList instructions, int flags, int opcode, @NotNull FieldType field){
         return findMatchingNodes(instructions, getFieldChecker(flags, opcode, field));
     }
     
-    @Override
-    public @NotNull Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit){
+    
+    public static @NotNull Optional<FieldInsnNode> findNextFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit){
         return findNextNode(node, getFieldChecker(flags, opcode, field), limit);
     }
     
-    @Override
-    public @NotNull Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit){
+    
+    public static @NotNull Optional<FieldInsnNode> findPreviousFieldNode(@NotNull AbstractInsnNode node, int flags, int opcode, @NotNull FieldType field, int limit){
         return findPreviousNode(node, getFieldChecker(flags, opcode, field), limit);
     }
 
-    @Override
-    public int getOpcodeFromHandleTag(int tag){
+    
+    public static int getOpcodeFromHandleTag(int tag){
         switch(tag){
             case H_GETFIELD: return GETFIELD;
             case H_GETSTATIC: return GETSTATIC;
@@ -553,8 +552,8 @@ public class AsmUtilsImpl implements AsmUtils{
         }
     }
     
-    @Override
-    public int getHandleTagFromOpcode(int opcode){
+    
+    public static int getHandleTagFromOpcode(int opcode){
         switch(opcode){
             case GETFIELD: return H_GETFIELD;
             case GETSTATIC: return H_GETSTATIC;
@@ -569,8 +568,8 @@ public class AsmUtilsImpl implements AsmUtils{
         }
     }
     
-    @Override
-    public @NotNull InsnList createExceptionList(@NotNull Type type, @Nullable String message){
+    
+    public static @NotNull InsnList createExceptionList(@NotNull Type type, @Nullable String message){
         InsnList instructions = new InsnList();
         String name = type.getInternalName();
         instructions.add(new TypeInsnNode(NEW, name));
@@ -585,8 +584,8 @@ public class AsmUtilsImpl implements AsmUtils{
         return instructions;
     }
     
-    @Override
-    public @NotNull Optional<MethodNode> findMethod(@NotNull ClassNode owner, @NotNull String name, @NotNull String desc){
+    
+    public static @NotNull Optional<MethodNode> findMethod(@NotNull ClassNode owner, @NotNull String name, @NotNull String desc){
         for(MethodNode method : owner.methods){
             if(
                 name.equals(method.name) &&
@@ -598,8 +597,8 @@ public class AsmUtilsImpl implements AsmUtils{
         return Optional.empty();
     }
     
-    @Override
-    public @NotNull String getOpcodeName(int opcode){
+    
+    public static @NotNull String getOpcodeName(int opcode){
         switch(opcode){
             case NOP: return "NOP";
             case ACONST_NULL: return "ACONST_NULL";

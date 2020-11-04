@@ -1,4 +1,4 @@
-package net.gudenau.minecraft.asm.api.v0.annotation;
+package net.gudenau.minecraft.asm.api.v1.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

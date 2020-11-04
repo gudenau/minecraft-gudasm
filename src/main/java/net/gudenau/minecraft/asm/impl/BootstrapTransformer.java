@@ -1,9 +1,9 @@
 package net.gudenau.minecraft.asm.impl;
 
 import java.util.List;
-import net.gudenau.minecraft.asm.api.v0.AsmUtils;
-import net.gudenau.minecraft.asm.api.v0.Identifier;
-import net.gudenau.minecraft.asm.api.v0.Transformer;
+import net.gudenau.minecraft.asm.api.v1.AsmUtils;
+import net.gudenau.minecraft.asm.api.v1.Identifier;
+import net.gudenau.minecraft.asm.api.v1.Transformer;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -27,7 +27,6 @@ public class BootstrapTransformer implements Transformer{
         ENABLED = enable;
     }
     
-    private static final AsmUtils ASM_UTILS = AsmUtils.getInstance();
     private static final Type FORCEBOOTLOADER = Type.getObjectType("net/gudenau/minecraft/asm/api/v0/annotation/ForceBootloader");
     private static final Type ASM_FORCEINLINE = Type.getObjectType("net/gudenau/minecraft/asm/api/v0/annotation/ForceInline");
     private static final Type JVM_FORCEINLINE = Type.getObjectType("jdk/internal/vm/annotation/ForceInline");
@@ -45,10 +44,10 @@ public class BootstrapTransformer implements Transformer{
     
     @Override
     public boolean transform(ClassNode classNode, Flags flags){
-        boolean changed = ASM_UTILS.removeAnnotations(classNode, FORCEBOOTLOADER);
+        boolean changed = AsmUtils.removeAnnotations(classNode, FORCEBOOTLOADER);
         
         for(MethodNode method : classNode.methods){
-            List<AnnotationNode> annotations = ASM_UTILS.getAnnotations(method, ASM_FORCEINLINE);
+            List<AnnotationNode> annotations = AsmUtils.getAnnotations(method, ASM_FORCEINLINE);
             if(!annotations.isEmpty()){
                 for(AnnotationNode annotation : annotations){
                     annotation.desc = JVM_FORCEINLINE.getDescriptor();

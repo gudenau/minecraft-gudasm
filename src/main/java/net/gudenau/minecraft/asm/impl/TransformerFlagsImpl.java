@@ -1,6 +1,6 @@
 package net.gudenau.minecraft.asm.impl;
 
-import net.gudenau.minecraft.asm.api.v0.Transformer;
+import net.gudenau.minecraft.asm.api.v1.Transformer;
 import org.objectweb.asm.ClassWriter;
 
 public class TransformerFlagsImpl implements Transformer.Flags{

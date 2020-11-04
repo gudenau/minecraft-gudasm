@@ -9,7 +9,6 @@ import java.nio.file.StandardOpenOption;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +19,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import net.fabricmc.loader.api.FabricLoader;
-import net.gudenau.minecraft.asm.api.v0.ClassCache;
-import net.gudenau.minecraft.asm.api.v0.Transformer;
-import net.gudenau.minecraft.asm.util.AsmUtilsImpl;
+import net.gudenau.minecraft.asm.api.v1.AsmUtils;
+import net.gudenau.minecraft.asm.api.v1.ClassCache;
+import net.gudenau.minecraft.asm.api.v1.Transformer;
 import net.gudenau.minecraft.asm.util.Locker;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -99,20 +98,21 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
                 return false;
             }
         })){
-            return basicClass;
+            return parent.transformClassBytes(name, transformedName, basicClass);
         }
         
         for(String prefix : BLACKLIST){
             if(name.startsWith(prefix)){
+                byte[] transformedClass = parent.transformClassBytes(name, transformedName, basicClass);
                 if(forceDump){
                     dump(name, basicClass);
                 }
-                return bootstrap(cache(basicClass, ()->parent.transformClassBytes(name, transformedName, basicClass)));
+                return bootstrap(cache(basicClass, ()->transformedClass));
             }
         }
         return cache(basicClass, ()->{
             if(basicClass == null){
-                return null;
+                return parent.transformClassBytes(name, transformedName, basicClass);
             }
             
             boolean shouldBootstrap = shouldBootstrap(basicClass);
@@ -219,7 +219,7 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
     
         ClassNode classNode = new ClassNode();
         new ClassReader(bytecode).accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return AsmUtilsImpl.INSTANCE.hasAnnotation(classNode, ANNOTATION_FORCE_BOOTLOADER);
+        return AsmUtils.hasAnnotation(classNode, ANNOTATION_FORCE_BOOTLOADER);
     }
     
     private byte[] bootstrap(byte[] bytecode){

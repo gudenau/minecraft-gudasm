@@ -1,4 +1,4 @@
-package net.gudenau.minecraft.asm.api.v0;
+package net.gudenau.minecraft.asm.api.v1;
 
 import net.gudenau.minecraft.asm.impl.RegistryImpl;
 
