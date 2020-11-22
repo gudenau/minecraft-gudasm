@@ -55,7 +55,6 @@ public class Bootstrap{
         
         // Hack into knot.
         ClassLoader classLoader = Bootstrap.class.getClassLoader();
-        MixinTransformer.setClassLoader(classLoader); // Needed for ASM, don't ask
         
         try{
             // Get classes we can't normally access

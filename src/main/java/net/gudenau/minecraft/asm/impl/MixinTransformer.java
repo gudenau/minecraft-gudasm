@@ -29,6 +29,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
 import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
+import org.spongepowered.asm.transformers.MixinClassWriter;
 
 /**
  * Our custom "mixin" transformer.
@@ -61,12 +62,6 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
             // Unreachable, makes javac happy
             throw new RuntimeException("Failed to get ClassLoader.defineClass1", e);
         }
-    }
-    
-    private static ClassLoader classLoader;
-    
-    public static void setClassLoader(ClassLoader classLoader){
-        MixinTransformer.classLoader = classLoader;
     }
     
     private final Set<String> seenClasses = new HashSet<>();
@@ -196,13 +191,7 @@ public class MixinTransformer extends FabricMixinTransformerProxy{
             return bytecode;
         }
         
-        ClassWriter writer = new ClassWriter(flags.getClassWriterFlags()){
-            // Fixes an issue with stack calculations
-            @Override
-            protected ClassLoader getClassLoader(){
-                return classLoader;
-            }
-        };
+        ClassWriter writer = new MixinClassWriter(flags.getClassWriterFlags());
         classNode.accept(writer);
         parentModifier.set(true);
         return writer.toByteArray();
